@@ -12,8 +12,8 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 #Frame sizes for login and sign up
-frame_width = 400
-frame_height = 450
+frame_width = 500
+frame_height = 550
 
 #Loading indicator for database
 def show_loading():
@@ -137,12 +137,6 @@ def toggle_mode():
     new_mode = "dark" if current_mode == "light" else "light"
     customtkinter.set_appearance_mode(new_mode)
 
-# Toggle Button 
-toolbar = customtkinter.CTkFrame(app, height = 50)
-toolbar.pack(fill = "x", side = "bottom")
-toggle_button = customtkinter.CTkButton(app, text="Light/Dark Mode", command=toggle_mode, fg_color = "blue")
-toggle_button.place(relx = 0.45, rely = 0.85, anchor = tkinter.CENTER)
-
 # Frames for Login and Sign-Up
 login_frame = customtkinter.CTkFrame(master =app, width = frame_width, height = frame_height,corner_radius = 10)
 login_frame.place(relx=0.45, rely=0.5, anchor=tkinter.CENTER)
@@ -167,16 +161,16 @@ def on_login_click():
     
     # Check if credentials exist in the database
     
-    conn = sqlite3.connect('user_data.db')
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM users WHERE username = ? AND password = ?", (username, hashed_password))
-    user = cursor.fetchone()
-    conn.close()
+    with sqlite3.connect('user_data.db') as conn:
+     cursor = conn.cursor()
+     cursor.execute("SELECT * FROM users WHERE username = ? AND password = ?", (username, hashed_password))
+     user = cursor.fetchone()
+     
 
     
 
     if user:
-        messagebox.showerror("Login", "Welcome, {username}")
+        messagebox.showinfo("Login", f"Welcome, {username}")
         
 
         login_username_entry.delete(0, tkinter.END)
@@ -217,6 +211,10 @@ login_password_entry.place(relx=0.5, y=190, anchor = tkinter.CENTER)
 login_button = customtkinter.CTkButton(master=login_frame, width=220, text="Login", corner_radius=6, command=on_login_click)
 login_button.place(relx=0.5, y=270, anchor = tkinter.CENTER)
 
+def toggle_password_visibility(var, entry):
+    entry.config(show="" if var.get() else "*")
+
+
 # Function for Sign-Up button validation
 def on_signup_click():
     username = entry3.get()
@@ -224,7 +222,11 @@ def on_signup_click():
     password = entry5.get()
     confirm_password = entry6.get()
     
+    show_password_var = tkinter.BooleanVar()
+    show_password_check = customtkinter.CTkCheckBox(login_frame, text="Show Password", variable=show_password_var, command=lambda: toggle_password_visibility(show_password_var, login_password_entry))
+    show_password_check.place(relx=0.5, y=240, anchor=tkinter.CENTER)
 
+    
     #Password Strength Check 
     password_strength = check_password_strength(password)
     
@@ -246,22 +248,27 @@ def on_signup_click():
         return
     
      # CHECK TO SEE IF USERNAME OR EMAIL EXISTS
-    conn = sqlite3.connect('user_data.db')
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM users WHERE username = ? OR email = ?", (username, email))
-    if cursor.fetchone():
+    with sqlite3.connect('user_data.db') as conn:
+     cursor = conn.cursor()
+     cursor.execute("SELECT * FROM users WHERE username = ? OR email = ?", (username, email))
+     if cursor.fetchone():
         messagebox.showerror("Signup Error", "Username or email already exists.")
-        conn.close()
         return
    
     # Saving user info to the database
     hashed_password = hash_password(password)
     cursor.execute("INSERT INTO users (username, email, password) VALUES (?, ?, ?)", (username, email, hashed_password))
     conn.commit()
-    conn.close() 
-    signup_error_label.configure(text="Account created successfully!", text_color="green")
+    
+    messagebox.showinfo("Signup Success", "Account created successfully!", text_color="green")
     show_login()
-   
+    
+    entry3.delete(0, tkinter.END)
+    entry4.delete(0, tkinter.END)
+    entry5.delete(0, tkinter.END)
+    entry6.delete(0, tkinter.END)
+    
+
 
 signup_label = customtkinter.CTkLabel(master=login_frame, text="Don't have an account? Sign Up", font=('Poppins', 12))
 signup_label.place(relx=0.5, y=320, anchor = tkinter.CENTER)
@@ -284,8 +291,7 @@ entry5.place(relx=0.5, y=240, anchor = tkinter.CENTER)
 entry6 = customtkinter.CTkEntry(master=signup_frame, width=220, placeholder_text="Confirm Password", show="*")
 entry6.place(relx=0.5, y=290, anchor = tkinter.CENTER)
 
-signup_error_label = customtkinter.CTkLabel(master=signup_frame, text="", text_color="red", font=('Poppins', 12))
-signup_error_label.place(relx=0.5, y=330, anchor = tkinter.CENTER)
+
 
 
 
@@ -329,7 +335,7 @@ def forgot_password(event=None):
             error_popup.pack(pady=5)
 
     submit_button = customtkinter.CTkButton(forgot_window, text="Submit", command=submit_email)
-    submit_button.place(pady=10)
+    submit_button.pack(pady=10)
 
 # Email validation function
 def is_valid_email(email):
@@ -346,7 +352,7 @@ l3.place(relx=0.5, y=340, anchor = tkinter.CENTER)
 l3.bind("<Button-1>", forgot_password)
 
 # Cursor styling for clickable elements
-for widget in [toggle_button, login_button, signup_button]:
+for widget in [login_button, signup_button]:
     widget.configure(cursor="hand2")
 
 # Run the app
