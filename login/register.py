@@ -355,5 +355,5 @@ l3.bind("<Button-1>", forgot_password)
 for widget in [login_button, signup_button]:
     widget.configure(cursor="hand2")
 
-# Run the app
+
 app.mainloop()
