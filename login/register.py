@@ -4,6 +4,7 @@ import re
 import threading
 import sqlite3
 import hashlib
+import tkinter.messagebox as messagebox
 from customtkinter import CTkImage
 from PIL import Image
 import smtplib
@@ -86,8 +87,8 @@ app.geometry('600x440')
 app.title('Cartoonify App')
 
 # Load the images
-image_light = Image.open(r"C:\Users\yndub\Documents\customtkinter project\pictures\pexels-parimoofarhaan-28855490.jpg")
-image_dark = Image.open(r"C:\Users\yndub\Documents\customtkinter project\pictures\pexels-apasaric-2411688.jpg")
+image_light = Image.open(r"C:\Users\Yandisa\OneDrive - Cape IT Initiative/Documents/cartoonify/customtkinter project - Copy/pictures/pexels-karolina-grabowska-5208686.jpg")
+image_dark = Image.open(r"C:\Users\Yandisa\OneDrive - Cape IT Initiative/Documents/cartoonify/customtkinter project - Copy/pictures/pexels-apasaric-2411688.jpg")
 
 def resize_images_to_same_size():
     initial_size = (600, 400)
@@ -154,18 +155,20 @@ def on_login_click():
     username = login_username_entry.get()
     password = login_password_entry.get()
     
+    
 
     if not username or not password:
-        error_label.configure(text="Both fields are required!")
+        messagebox.showerror("Login Error", "Both fields are required!")
         return
+    
+    hashed_password = hash_password(password)
     
     show_loading()
     
     # Check if credentials exist in the database
-    hashed_password = hash_password(password)
+    
     conn = sqlite3.connect('user_data.db')
     cursor = conn.cursor()
-    hashed_password = hash_password()
     cursor.execute("SELECT * FROM users WHERE username = ? AND password = ?", (username, hashed_password))
     user = cursor.fetchone()
     conn.close()
@@ -173,13 +176,13 @@ def on_login_click():
     
 
     if user:
-        error_label.configure(text="Login Successful", text_color="green")
-        print("Login Successful")
+        messagebox.showerror("Login", "Welcome, {username}")
+        
 
         login_username_entry.delete(0, tkinter.END)
         login_password_entry.delete(0, tkinter.END)
     else:
-        error_label.configure(text="Invalid credentials", text_color="red")
+       messagebox.showerror("Login Error", "Invalid credentials")
 
 
     login_username_entry.delete(0, tkinter.END)
@@ -220,38 +223,34 @@ def on_signup_click():
     email = entry4.get()
     password = entry5.get()
     confirm_password = entry6.get()
-    signup_error_label.configure(text="")
+    
 
     #Password Strength Check 
     password_strength = check_password_strength(password)
-    password_strength_label.configure(text = f"Password Strength: {password_strength}")
+    
 
     # Validate fields
     if not username or not email or not password or not confirm_password:
-        signup_error_label.configure(text="All fields are required.")
+        messagebox.showerror("Signup Error", "All fields are required")
         return
 
     if not is_valid_email(email):
-        signup_error_label.configure(text="Invalid email address.")
+        messagebox.showerror("Singup Error", "Inavlid email address")
         return
     if password != confirm_password:
-        signup_error_label.configure(text="Passwords do not match.")
+        messagebox.showerror("Signup Error", "Passwords don't match")
         return
     
     if password_strength == "Weak":
-        signup_error_label.configure(text="Please choose a stronger password.")
+        messagebox.showerror("Signup Error", "Please choose a stronger password")
         return
     
-    password_strength_label = customtkinter.CTkLabel(master=signup_frame, text="", text_color="green", font=('Poppins', 12))
-    password_strength_label.place(relx=0.5, y=330, anchor=tkinter.CENTER)
-
-
      # CHECK TO SEE IF USERNAME OR EMAIL EXISTS
     conn = sqlite3.connect('user_data.db')
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM users WHERE username = ? OR email = ?", (username, email))
     if cursor.fetchone():
-        signup_error_label.configure(text="Username or email already exists.")
+        messagebox.showerror("Signup Error", "Username or email already exists.")
         conn.close()
         return
    
@@ -270,7 +269,7 @@ signup_label.bind("<Button-1>", lambda event: show_signup())
 
 
 # Sign-Up Frame
-s2 = customtkinter.CTkLabel(master=signup_frame, text="Create an account", font=('Poppins', 20))
+s2 = customtkinter.CTkLabel(master=signup_frame, text="Create An Account", font=('Poppins', 20))
 s2.place(relx=0.5, y=60, anchor = tkinter.CENTER)
 
 entry3 = customtkinter.CTkEntry(master=signup_frame, width=220, placeholder_text="Username")
@@ -288,6 +287,8 @@ entry6.place(relx=0.5, y=290, anchor = tkinter.CENTER)
 signup_error_label = customtkinter.CTkLabel(master=signup_frame, text="", text_color="red", font=('Poppins', 12))
 signup_error_label.place(relx=0.5, y=330, anchor = tkinter.CENTER)
 
+
+
 signup_button = customtkinter.CTkButton(master=signup_frame, width=220, text="Sign Up", corner_radius=6, command=on_signup_click)
 signup_button.place(relx=0.5, y=370, anchor = tkinter.CENTER)
 
@@ -295,15 +296,9 @@ login_label = customtkinter.CTkLabel(master=signup_frame, text="Already have an 
 login_label.place(relx=0.5, y=420, anchor = tkinter.CENTER)
 login_label.bind("<Button-1>", lambda event: show_login())
 
-# Error Message Label
-error_label = customtkinter.CTkLabel(master=login_frame, text="", text_color="red", font=('Poppins', 12))
-error_label.place(x=50, y=280)
 
-# After sign-up is successful
-entry3.delete(0, tkinter.END)
-entry4.delete(0, tkinter.END)
-entry5.delete(0, tkinter.END)
-entry6.delete(0, tkinter.END)
+
+
 
 
 

@@ -12,8 +12,9 @@ class SplashScreen:
         self.master.resizable(True, True)
 
         # Load the Image
-        img_path = r'C:\Users\Yandisa\OneDrive - Cape IT Initiative\Attachments\Desktop\customtkinter project - Copy\pictures\pexels-photo-1840623.jpeg'
+        img_path = 'C:/Users/Yandisa/OneDrive - Cape IT Initiative/Documents/cartoonify/customtkinter project - Copy/pictures/pexels-photo-1840623.jpeg'
         img = Image.open(img_path)
+
         img_resized = img.resize((600, 440), Image.LANCZOS)
         self.tk_img = ImageTk.PhotoImage(img_resized)
 
