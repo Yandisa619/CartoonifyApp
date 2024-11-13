@@ -1,5 +1,5 @@
 import tkinter 
-import customtkinter
+import customtkinter 
 import re
 import threading
 import sqlite3
@@ -87,8 +87,8 @@ app.geometry('600x440')
 app.title('Cartoonify App')
 
 # Load the images
-image_light = Image.open(r"C:\Users\Yandisa\OneDrive - Cape IT Initiative/Documents/cartoonify/customtkinter project - Copy/pictures/pexels-karolina-grabowska-5208686.jpg")
-image_dark = Image.open(r"C:\Users\Yandisa\OneDrive - Cape IT Initiative/Documents/cartoonify/customtkinter project - Copy/pictures/pexels-apasaric-2411688.jpg")
+image_light = Image.open(r"C:\Users\yndub\Documents\GitHub\CartoonifyApp\pictures\pexels-karolina-grabowska-5208686.jpg")
+image_dark = Image.open(r"C:\Users\yndub\Documents\GitHub\CartoonifyApp\pictures\pexels-apasaric-2411688.jpg")
 
 def resize_images_to_same_size():
     initial_size = (600, 400)
@@ -138,12 +138,20 @@ def toggle_mode():
     customtkinter.set_appearance_mode(new_mode)
 
 # Frames for Login and Sign-Up
-login_frame = customtkinter.CTkFrame(master =app, width = frame_width, height = frame_height,corner_radius = 10)
+login_frame = customtkinter.CTkFrame(master =app, width = frame_width, height = frame_height,corner_radius = 10,)
 login_frame.place(relx=0.45, rely=0.5, anchor=tkinter.CENTER)
 
 signup_frame = customtkinter.CTkFrame(master=app, width = frame_width, height = frame_height, corner_radius=10)
 signup_frame.place(relx=0.45, rely=0.5, anchor=tkinter.CENTER)
 
+show_password_var = tkinter.BooleanVar()
+
+def toggle_password_visibility():
+    if show_password_var.get():
+        login_password_entry.configure(show = "")
+    else:
+        login_password_entry.configure(show = "*")
+        
 # Login Button Action
 def on_login_click():
     username = login_username_entry.get()
@@ -171,16 +179,10 @@ def on_login_click():
 
     if user:
         messagebox.showinfo("Login", f"Welcome, {username}")
-        
-
         login_username_entry.delete(0, tkinter.END)
         login_password_entry.delete(0, tkinter.END)
     else:
        messagebox.showerror("Login Error", "Invalid credentials")
-
-
-    login_username_entry.delete(0, tkinter.END)
-    login_password_entry.delete(0, tkinter.END)
 
 
 # Function to show the Sign-Up frame
@@ -206,14 +208,21 @@ login_password_entry = customtkinter.CTkEntry(master=login_frame, width=220, pla
 login_password_entry.place(relx=0.5, y=190, anchor = tkinter.CENTER)
 
 
+# Checkbox for showing/hiding passwords
+show_password_check = customtkinter.CTkCheckBox(
+    login_frame, text="Show Password", variable=show_password_var,
+    command=toggle_password_visibility,
+    font=('Poppins', 10)
+)
+show_password_check.place(relx=0.5, y=240, anchor=tkinter.CENTER)
+
+
 
 # Login and Sign Up buttons
 login_button = customtkinter.CTkButton(master=login_frame, width=220, text="Login", corner_radius=6, command=on_login_click)
 login_button.place(relx=0.5, y=270, anchor = tkinter.CENTER)
 
-def toggle_password_visibility(var, entry):
-    entry.config(show="" if var.get() else "*")
-
+show_password_var = tkinter.BooleanVar()
 
 # Function for Sign-Up button validation
 def on_signup_click():
@@ -221,11 +230,6 @@ def on_signup_click():
     email = entry4.get()
     password = entry5.get()
     confirm_password = entry6.get()
-    
-    show_password_var = tkinter.BooleanVar()
-    show_password_check = customtkinter.CTkCheckBox(login_frame, text="Show Password", variable=show_password_var, command=lambda: toggle_password_visibility(show_password_var, login_password_entry))
-    show_password_check.place(relx=0.5, y=240, anchor=tkinter.CENTER)
-
     
     #Password Strength Check 
     password_strength = check_password_strength(password)
@@ -260,7 +264,7 @@ def on_signup_click():
     cursor.execute("INSERT INTO users (username, email, password) VALUES (?, ?, ?)", (username, email, hashed_password))
     conn.commit()
     
-    messagebox.showinfo("Signup Success", "Account created successfully!", text_color="green")
+    messagebox.showinfo("Signup Success", "Account created successfully!")
     show_login()
     
     entry3.delete(0, tkinter.END)
@@ -289,18 +293,17 @@ entry5 = customtkinter.CTkEntry(master=signup_frame, width=220, placeholder_text
 entry5.place(relx=0.5, y=240, anchor = tkinter.CENTER)
 
 entry6 = customtkinter.CTkEntry(master=signup_frame, width=220, placeholder_text="Confirm Password", show="*")
-entry6.place(relx=0.5, y=290, anchor = tkinter.CENTER)
-
-
+entry6.place(relx=0.5, y=290, anchor=tkinter.CENTER)
 
 
 
 signup_button = customtkinter.CTkButton(master=signup_frame, width=220, text="Sign Up", corner_radius=6, command=on_signup_click)
-signup_button.place(relx=0.5, y=370, anchor = tkinter.CENTER)
+signup_button.place(relx=0.5, y=370, anchor=tkinter.CENTER)
 
 login_label = customtkinter.CTkLabel(master=signup_frame, text="Already have an account? Log In", font=('Poppins', 12))
-login_label.place(relx=0.5, y=420, anchor = tkinter.CENTER)
+login_label.place(relx=0.5, y=420, anchor=tkinter.CENTER)
 login_label.bind("<Button-1>", lambda event: show_login())
+
 
 
 
