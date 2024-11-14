@@ -207,7 +207,7 @@ def on_signup_click():
     #Password Strength Check 
     password_strength = check_password_strength(password)
     progress_value = get_password_strength_value(password_strength)
-    progress_bar.set(password_strength / 100)
+    progress_bar.set(progress_value / 100)
 
     # Validate fields
     if not username or not email or not password or not confirm_password:
