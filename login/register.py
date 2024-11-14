@@ -2,6 +2,7 @@ import tkinter
 import customtkinter 
 import re
 import threading
+import subprocess
 import sqlite3
 import hashlib
 import tkinter.messagebox as messagebox
@@ -53,7 +54,7 @@ def send_password_recovery(email):
     message.attach(MIMEText(body, 'plain'))
 
     try:
-        with smtplib.SMTP("smtp.example.com", 587) as server:
+        with smtplib.SMTP("smtp-mail.outlook.com", 587) as server:
             server.starttls()
             server.login(sender_email, sender_password)
             server.sendmail(sender_email, email, message.as_string())
@@ -80,15 +81,15 @@ def initialize_db():
 initialize_db()
 
 customtkinter.set_appearance_mode("dark")
-customtkinter.set_default_color_theme("green")
+customtkinter.set_default_color_theme("blue")
 
 app = customtkinter.CTk()
 app.geometry('600x440')
 app.title('Cartoonify App')
 
 # Load the images
-image_light = Image.open(r"C:\Users\yndub\Documents\GitHub\CartoonifyApp\pictures\pexels-karolina-grabowska-5208686.jpg")
-image_dark = Image.open(r"C:\Users\yndub\Documents\GitHub\CartoonifyApp\pictures\pexels-apasaric-2411688.jpg")
+image_light = Image.open(r"C:\Users\Yandisa\OneDrive - Cape IT Initiative\Documents\cartoonify\customtkinter project - Copy\pictures\pexels-karolina-grabowska-5208686.jpg")
+image_dark = Image.open(r"C:\Users\Yandisa\OneDrive - Cape IT Initiative\Documents\cartoonify\customtkinter project - Copy\pictures\pexels-apasaric-2411688.jpg")
 
 def resize_images_to_same_size():
     initial_size = (600, 400)
@@ -128,9 +129,6 @@ def resize_images(event=None):
 # Bind the resizing function to the window resize event
 app.bind("<Configure>", resize_images)
 
-
-
-
 # Toggle Function between dark and light mode
 def toggle_mode():
     current_mode = customtkinter.get_appearance_mode()
@@ -156,9 +154,7 @@ def toggle_password_visibility():
 def on_login_click():
     username = login_username_entry.get()
     password = login_password_entry.get()
-    
-    
-
+        
     if not username or not password:
         messagebox.showerror("Login Error", "Both fields are required!")
         return
@@ -173,12 +169,12 @@ def on_login_click():
      cursor = conn.cursor()
      cursor.execute("SELECT * FROM users WHERE username = ? AND password = ?", (username, hashed_password))
      user = cursor.fetchone()
-     
-
-    
-
+        
     if user:
         messagebox.showinfo("Login", f"Welcome, {username}")
+        subprocess.Popen(['python', 'dashboard.py'])
+        
+        
         login_username_entry.delete(0, tkinter.END)
         login_password_entry.delete(0, tkinter.END)
     else:
@@ -215,8 +211,6 @@ show_password_check = customtkinter.CTkCheckBox(
     font=('Poppins', 10)
 )
 show_password_check.place(relx=0.5, y=240, anchor=tkinter.CENTER)
-
-
 
 # Login and Sign Up buttons
 login_button = customtkinter.CTkButton(master=login_frame, width=220, text="Login", corner_radius=6, command=on_login_click)
@@ -272,8 +266,6 @@ def on_signup_click():
     entry5.delete(0, tkinter.END)
     entry6.delete(0, tkinter.END)
     
-
-
 signup_label = customtkinter.CTkLabel(master=login_frame, text="Don't have an account? Sign Up", font=('Poppins', 12))
 signup_label.place(relx=0.5, y=320, anchor = tkinter.CENTER)
 signup_label.bind("<Button-1>", lambda event: show_signup())
@@ -295,21 +287,12 @@ entry5.place(relx=0.5, y=240, anchor = tkinter.CENTER)
 entry6 = customtkinter.CTkEntry(master=signup_frame, width=220, placeholder_text="Confirm Password", show="*")
 entry6.place(relx=0.5, y=290, anchor=tkinter.CENTER)
 
-
-
 signup_button = customtkinter.CTkButton(master=signup_frame, width=220, text="Sign Up", corner_radius=6, command=on_signup_click)
 signup_button.place(relx=0.5, y=370, anchor=tkinter.CENTER)
 
 login_label = customtkinter.CTkLabel(master=signup_frame, text="Already have an account? Log In", font=('Poppins', 12))
 login_label.place(relx=0.5, y=420, anchor=tkinter.CENTER)
 login_label.bind("<Button-1>", lambda event: show_login())
-
-
-
-
-
-
-
 
 # Function to handle 'Forgot Password'
 def forgot_password(event=None):
@@ -329,13 +312,7 @@ def forgot_password(event=None):
             print(f"Password recovery sent to {email}")
             forgot_window.destroy()
         else: 
-            error_popup = customtkinter.CTkLabel(
-                forgot_window,
-                text="Invalid email address.",
-                text_color="red",
-                font=('Poppins', 12)
-            )
-            error_popup.pack(pady=5)
+            messagebox.showerror = ("Error", "Email is not valid" )
 
     submit_button = customtkinter.CTkButton(forgot_window, text="Submit", command=submit_email)
     submit_button.pack(pady=10)
@@ -344,10 +321,6 @@ def forgot_password(event=None):
 def is_valid_email(email):
     email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
     return re.match(email_regex, email) is not None
-
-
-
-   
 
 # Forgot Password label
 l3 = customtkinter.CTkLabel(master=login_frame, text="Forgot Password ?", font=('Poppins', 12))
