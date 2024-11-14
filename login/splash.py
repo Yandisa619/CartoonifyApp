@@ -46,15 +46,15 @@ class SplashScreen:
                                             style="modern.Horizontal.TProgressbar")
         self.progress_bar.place(relx=0.5, rely=0.65, anchor='center')
 
-        # Percentage label
+
         self.percentage_label = Label(master, text="0%", font=("Poppins", 16), fg="white", bg="black")
         self.percentage_label.place(relx=0.5, rely=0.75, anchor='center')
 
-        # Track progress
+
         self.progress = 0
         self.update_progress()
 
-        # Hide splash after 5 seconds
+
         self.master.after(7000, self.hide_splash)
 
     def update_progress(self):

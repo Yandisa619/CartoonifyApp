@@ -33,15 +33,6 @@ def show_loading():
     app.after(2000, lambda: progress.set(1))
     app.after(3000, lambda: loading_frame.place_forget())
 
-#Password Strength Check
-def check_password_strength(password):
-    if len(password) < 8:
-        return "Weak"
-    elif len(password) < 12:
-        return "Medium"
-    else:
-         return "Strong"
-
 #Password recovery email
 def send_password_recovery(email):
     sender_email = "yandisa.ndubela@capaciti.org.za"
@@ -179,6 +170,33 @@ login_button.place(relx=0.5, y=270, anchor = tkinter.CENTER)
 
 show_password_var = tkinter.BooleanVar()
 
+progress_bar = customtkinter.CTkProgressBar(master=signup_frame, width=220, height=10)
+progress_bar.place(relx=0.5, y=330, anchor=tkinter.CENTER)
+
+
+
+def check_password_strength(password):
+    if len(password) < 6:
+        return "Weak"
+    elif re.search(r'[A-Za-z]', password) and re.search(r'[0-9]', password):
+        return "Medium"
+    elif re.search(r'[A-Za-z]', password) and re.search(r'[0-9]', password) and re.search(r'[\W_]', password):
+        return "Strong"
+    else:
+        return "Weak"
+    
+def get_password_strength_value(password_strength):
+    if password_strength == "Weak":
+       return 0
+    elif password_strength == "Medium":
+        return 50
+    elif password_strength == "Strong":
+        return 100
+    else:
+         return 0
+    
+
+
 # Function for Sign-Up button validation
 def on_signup_click():
     username = entry3.get()
@@ -188,7 +206,8 @@ def on_signup_click():
     
     #Password Strength Check 
     password_strength = check_password_strength(password)
-    
+    progress_value = get_password_strength_value(password_strength)
+    progress_bar.set(password_strength / 100)
 
     # Validate fields
     if not username or not email or not password or not confirm_password:
