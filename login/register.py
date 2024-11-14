@@ -1,3 +1,4 @@
+
 import tkinter 
 import customtkinter 
 import re
@@ -87,47 +88,7 @@ app = customtkinter.CTk()
 app.geometry('600x440')
 app.title('Cartoonify App')
 
-# Load the images
-image_light = Image.open(r"C:\Users\Yandisa\OneDrive - Cape IT Initiative\Documents\cartoonify\customtkinter project - Copy\pictures\pexels-karolina-grabowska-5208686.jpg")
-image_dark = Image.open(r"C:\Users\Yandisa\OneDrive - Cape IT Initiative\Documents\cartoonify\customtkinter project - Copy\pictures\pexels-apasaric-2411688.jpg")
-
-def resize_images_to_same_size():
-    initial_size = (600, 400)
-    resized_light = image_light.resize(initial_size, Image.Resampling.LANCZOS)
-    resized_dark = image_dark.resize(initial_size, Image.Resampling.LANCZOS)
-    return resized_light, resized_dark, initial_size
-
-# Initial image resizing
-resized_light, resized_dark, initial_size = resize_images_to_same_size()
-img1 = customtkinter.CTkImage(light_image=resized_light, dark_image=resized_dark, size=initial_size)
-
-li = customtkinter.CTkLabel(master=app, image=img1)
-li.pack(fill="both", expand=True)
-
-# Delay variable for resizing debounce
-resize_delay = None
-
-# Function to perform actual image resizing
-def perform_resize():
-    width, height = app.winfo_width(), app.winfo_height()
-    resized_light = image_light.resize((width, height), Image.Resampling.LANCZOS)
-    resized_dark = image_dark.resize((width, height), Image.Resampling.LANCZOS)
-
-    # Update image with new resized images
-    img1 = customtkinter.CTkImage(light_image=resized_light, dark_image=resized_dark, size=(width, height))
-    li.configure(image=img1)
-    li.image = img1
-    li.update()
-
-# Function to trigger resizing with debounce
-def resize_images(event=None):
-    global resize_delay
-    if resize_delay:
-        app.after_cancel(resize_delay)
-    resize_delay = app.after(100, perform_resize)
-
-# Bind the resizing function to the window resize event
-app.bind("<Configure>", resize_images)
+app.configure(fg_color = "black")
 
 # Toggle Function between dark and light mode
 def toggle_mode():
@@ -136,10 +97,10 @@ def toggle_mode():
     customtkinter.set_appearance_mode(new_mode)
 
 # Frames for Login and Sign-Up
-login_frame = customtkinter.CTkFrame(master =app, width = frame_width, height = frame_height,corner_radius = 10,)
+login_frame = customtkinter.CTkFrame(master =app, width = frame_width, height = frame_height,corner_radius = 10, fg_color = "black")
 login_frame.place(relx=0.45, rely=0.5, anchor=tkinter.CENTER)
 
-signup_frame = customtkinter.CTkFrame(master=app, width = frame_width, height = frame_height, corner_radius=10)
+signup_frame = customtkinter.CTkFrame(master=app, width = frame_width, height = frame_height, corner_radius=10, fg_color = "black")
 signup_frame.place(relx=0.45, rely=0.5, anchor=tkinter.CENTER)
 
 show_password_var = tkinter.BooleanVar()
