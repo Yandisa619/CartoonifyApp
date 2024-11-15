@@ -12,7 +12,8 @@ if len(sys.argv) > 1:
     user_id = sys.argv[1]
     print(f"User ID: {user_id}")
 else:
-     print("No user_id provided")
+     print("No user_id provided, setting default user_id")
+     user_id = 1
 
 # Set appearance mode (system, light, dark) and color theme
 ctk.set_appearance_mode("dark")
@@ -29,6 +30,7 @@ smoothed_image = None
 edges_image = None
 cartoon_image = None
 current_image = None
+
 
 # Function to open and display the selected image
 def open_image():
@@ -75,41 +77,47 @@ def cartoonify_image(image):
     return cartoon
 
 def image_to_binary(image):
+    
+    
     with io.BytesIO() as byte_array:
-        image.save(byte_array, format = "PNG")
-        return byte_array.getvalue()
+     image.save(byte_array, format = "PNG")
+    return byte_array.getvalue()
 
-# Function to save the cartoonified image
-def save_image(user_id):
+def save_image(user_id, cartoon_image):
     if cartoon_image:
-       save_path = filedialog.asksaveasfilename(defaultextension = ".jpg", filetypes = [("JPEG", "*.jpg"), ("PNG", "*.png")])
-       if save_path:
-           
-           cartoon_image.save(save_path)
+        # Convert cartoon image to binary
+        image_data = image_to_binary(cartoon_image)
 
-           image_data = image_to_binary(cartoon_image)
+        try:
+            # Connect to the database
+            conn = sqlite3.connect('user_data.db')
+            cursor = conn.cursor()
 
-           
+            # Check if the images table exists, and create it if not
+            cursor.execute('''CREATE TABLE IF NOT EXISTS images (
+                                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                image_data BLOB NOT NULL,
+                                user_id INTEGER,
+                                FOREIGN KEY(user_id) REFERENCES users(id)
+                              )''')
 
-       conn = sqlite3.connect('user_data.db')
-       cursor = conn.cursor()
-       
-       cursor.execute('''
-            CREATE TABLE IF NOT EXISTS images (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL,
-                image_data BLOB NOT NULL,
-                FOREIGN KEY (user_id) REFERENCES users (id)
-            )
-        ''')
-       
-       cursor.execute('INSERT INTO images (user_id, image_data) Values (?, ?)',(user_id, image_data))
-       conn.commit()
-       conn.close()
+            # Insert the binary data and user_id into the images table
+            cursor.execute('INSERT INTO images (user_id, image_data) VALUES (?, ?)', (user_id, image_data))
+            
+            # Commit changes and close connection
+            conn.commit()
+            conn.close()
 
-       messagebox.showinfo("Image Saved", "Your cartoonified image has been saved to the database successfully!")
+            # Show success message
+            messagebox.showinfo("Image Saved", "Your cartoonified image has been saved to the database successfully!")
+        except sqlite3.Error as e:
+            # Show error message if database operation fails
+            messagebox.showerror("Database Error", f"An error occurred while saving the image: {e}")
     else:
         messagebox.showerror("No Image", "Please cartoonify an image before saving.")
+
+# Function to save the cartoonified image
+
 
 def apply_cartoon_effect():
     global cartoon_image
@@ -238,44 +246,8 @@ def cartoonify():
         update_cartoon_display()
 
 def view_cartoonified_images():
-    try:
-        conn = sqlite3.connect("user_data.db")
-        cursor = conn.cursor()
-
-        cursor.execute("SELECT filename, image_data FROM images")
-        rows = cursor.fetchall()
-        conn.close()
-
-        if not rows:
-            messagebox.showinfo("No Images", "No cartoonified images found in the database.")
-            return
-    
-        view_window = ctk.CTkToplevel(root)
-        view_window.title("Cartoonified Images")
-        view_window.geometry("600x400")
-        view_window.grid_columnconfigure((0, 1, 2, 3), weight=1)
-    
-        for index, (filename, image_data) in enumerate(rows):
-            
-            if image_data:
-                try:
-                   image = Image.open(io.BytesIO(image_data))
-                   image = image.resize((150, 150))  # Resize for display
-                   image_tk = ImageTk.PhotoImage(image)
-            
-                   label = ctk.CTkLabel(view_window, text=filename, image=image_tk, compound="top")
-                   label.image = image_tk  # Keep a reference to avoid garbage collection
-                   label.grid(row=index // 4, column=index % 4, padx=10, pady=10)
-               
-                except Exception as e:
-                    print(f"Error loading image for {filename}: {e}")
-                    messagebox.showerror("Image Error", f"Error loading image for {filename}.")
-
-    except sqlite3.OperationalError as e:
-        messagebox.showerror("Database Error", f"Database error: {e}")
-    except Exception as e:
-        messagebox.showerror("Error", f"An error occurred: {e}")
-def save_comparison():
+   
+ def save_comparison():
     if original_image and cartoon_image:
         save_path = filedialog.asksaveasfilename(defaultextension=".jpg", filetypes=[("JPEG", "*.jpg"), ("PNG", "*.png")])
         if save_path:
@@ -361,12 +333,35 @@ def create_dashboard(email, user_name):
         height=100,
     )
     profile_icon.pack(pady=20)
+    
+    def get_username(user_id):
+        try: 
+            conn = sqlite3.connect('user_data.db')
+            cursor = conn.cursor()
+
+            cursor.execute("SELECT username FROM users WHERE id=?", (user_id,))
+            result = cursor.fetchone()
+
+            if result:
+                return result[0]
+            else: 
+                return None
+        except sqlite3.Error as e:
+            print(f"An error occured while retriving the username: {e}")
+            return None
+        finally:
+            conn.close()
+    
+    user_id = 1
+    user_name = get_username(user_id)
 
     # Add welcome label below the profile icon
-    heading_label = ctk.CTkLabel(
+    if user_name:
+        heading_label = ctk.CTkLabel(
         sidebar, text=f"Welcome, {user_name}!", font=("Arial", 20)
     )
     heading_label.pack(pady=10)
+    
 
     # Remove the email label
     # email_label = ctk.CTkLabel(dashboard_frame, text=f"Email: {email}", font=("Arial", 14))
@@ -377,10 +372,10 @@ def create_dashboard(email, user_name):
 open_button = ctk.CTkButton(sidebar, text="Open Image", command=open_image)
 open_button.pack(pady=30)
 
-view_button = ctk.CTkButton(sidebar, text="View Cartoonified", command=view_cartoonified_images)
+view_button = ctk.CTkButton(sidebar, text="View Cartoonified", command= lambda: view_cartoonified_images)
 view_button.pack(pady=30)
 
-view_button = ctk.CTkButton(sidebar, text="Save Image", command = lambda: save_image(user_id))
+view_button = ctk.CTkButton(sidebar, text="Save Image", command = lambda: save_image(user_id, cartoon_image))
 view_button.pack(pady=30)
 
 #save_button = ctk.CTkButton(view_button, text="Save Image", command= lambda: save_image(user_id))
