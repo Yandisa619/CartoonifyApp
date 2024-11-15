@@ -1,4 +1,3 @@
-from readline import redisplay
 import sys
 import customtkinter as ctk
 import sqlite3
@@ -10,7 +9,7 @@ import numpy as np
 
 # Set appearance mode (system, light, dark) and color theme
 ctk.set_appearance_mode("dark")
-ctk.set_default_color_theme(r"cartoonify_env\Cartoon\Violet_light.json")
+ctk.set_default_color_theme(r"login/violet_light.json")
 
 # Create the main window
 root = ctk.CTk()
@@ -95,6 +94,14 @@ def save_image(user_id):
     else:
         messagebox.showerror("No Image", "Please cartoonify an image before saving.")
 
+<<<<<<< HEAD
+=======
+def image_to_binary(image):
+    with io.BytesIO() as byte_array:
+        image.save(byte_array, format = "PNG")
+        return byte_array.getvalue()
+    
+>>>>>>> 3291105898ae11839ebf02b889b8b2975a3ff5d7
 def apply_cartoon_effect():
     global cartoon_image
     if smoothed_image and edges_image:
@@ -221,6 +228,29 @@ def cartoonify():
         update_last_image_state() 
         update_cartoon_display()
 
+def view_cartoonified_images():
+    conn = sqlite3.connect("cartoon_images.db")
+    cursor = conn.cursor()
+    cursor.execute('SELECT filename, image FROM cartoon_images')
+    rows = cursor.fetchall()
+    conn.close()
+    
+    # Create a new window to display images
+    view_window = ctk.CTkToplevel(root)
+    view_window.title("Cartoonified Images")
+    view_window.geometry("600x400")
+    
+    # Display each image in the database
+    for index, (filename, image_data) in enumerate(rows):
+        image = Image.frombytes("RGB", (200, 200), image_data)  
+        image_tk = ImageTk.PhotoImage(image)
+        
+        # Create a label for each image
+        label = ctk.CTkLabel(view_window, image=image_tk)
+        label.image = image_tk  
+        label.grid(row=index // 4, column=index % 4, padx=10, pady=10)
+
+
 
 def save_comparison():
     if original_image and cartoon_image:
@@ -247,7 +277,7 @@ def create_navigationbar():
     nav_bar.pack(fill="x")
  
    
-    logo_image = Image.open("Purple Abstract A Letter Free Logo.png ")  
+    logo_image = Image.open("pictures/Purple Abstract A Letter Free Logo.png")  
     logo_image = logo_image.resize((70, 70))  
  
    
@@ -268,22 +298,61 @@ sidebar = ctk.CTkFrame(root, width=200, height=600)
 sidebar.pack(side="left", fill="y")
 
 # Load and redisplay the profile icon
-profile_icon = Image.open('user.png')  
-profile_icon = profile_icon.resize((50, 50), Image.LANCZOS) 
-profile_icon_tk = ImageTk.PhotoImage(profile_icon)
 
-icon_label = ctk.Label(sidebar, image=profile_icon_tk, bg="#800080")
-icon_label.pack(pady=10) 
+try:
+    # Load and resize the profile icon
+    profile_icon = Image.open('pictures/user.png')
+    profile_icon = profile_icon.resize((50, 50), Image.LANCZOS)
+    profile_icon_tk = ImageTk.PhotoImage(profile_icon)
+
+    # Add the icon to the sidebar
+    icon_label = ctk.CTkLabel(sidebar, image=profile_icon_tk, text="", fg_color="transparent")
+    icon_label.pack(pady=10)
+
+except FileNotFoundError:
+    print("Error: The file 'user.png' was not found.")
 
 
-heading_label = ctk.CTkLabel(sidebar, text="Dashboard", font=("Arial", 18), width=200, height=40)
-heading_label.pack(pady=50)
+# heading_label = ctk.CTkLabel(sidebar, text="Dashboard", font=("Arial", 18), width=200, height=40)
+# heading_label.pack(pady=50)
+
+def create_dashboard(email, user_name):
+    """
+    Sets up the dashboard with user-specific details.
+    Args:
+        email (str): The user's email.
+        user_name (str): The user's name.
+    """
+    # Create dashboard frame
+    dashboard_frame = ctk.CTkFrame(root, width=700, height=500)
+    dashboard_frame.pack(pady=20)
+
+    # Add profile icon
+    profile_icon = ctk.CTkLabel(
+        sidebar,
+        text="",  # No text for the label
+        image=ctk.CTkImage(file="user.png "),  
+        width=100,
+        height=100,
+    )
+    profile_icon.pack(pady=20)
+
+    # Add welcome label below the profile icon
+    heading_label = ctk.CTkLabel(
+        sidebar, text=f"Welcome, {user_name}!", font=("Arial", 20)
+    )
+    heading_label.pack(pady=10)
+
+    # Remove the email label
+    # email_label = ctk.CTkLabel(dashboard_frame, text=f"Email: {email}", font=("Arial", 14))
+    # email_label.pack(pady=5)
+
 
 # Sidebar buttons
 open_button = ctk.CTkButton(sidebar, text="Open Image", command=open_image)
 open_button.pack(pady=30)
 
-view_button = ctk.CTkButton(sidebar, text="View Cartoonified", command=cartoonify)
+view_button = ctk.CTkButton(sidebar, text="View Cartoonified", command=view_cartoonified_images)
 view_button.pack(pady=30)
 
 view_button = ctk.CTkButton(sidebar, text="Save Image", command=save_image)
@@ -366,31 +435,51 @@ def reset_image():
     if original_image:
         current_image = original_image.copy()
         update_cartoon_display()
+
+
+def load_user_data(email, file_path="users.txt"):
+    """
+    Loads user-specific data from a text file.
+    Args:
+        email (str): The user's email.
+        file_path (str): Path to the text file containing user data.
+    Returns:
+        dict: User data if found, else an empty dictionary.
+    """
+    try:
+        with open(file_path, "r") as file:
+            for line in file:
+                data = line.strip().split(',')
+                if data[0] == email: 
+                    return {"email": data[0], "password": data[1], "name": data[2]} 
+        return {}  
+    except FileNotFoundError:
+        print(f"Error: File '{file_path}' not found.")
+        return {}
+
 # Entry point for the app
-# if __name__ == "__main__":
-#     if len(sys.argv) > 1:
-#         email = sys.argv[1]  # Get the email from command-line arguments
+if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        email = sys.argv[1] 
        
-#         # Load user data including measurements
-#         user_data = load_user_data(email)
-       
-#         # Try to get the user's name from the login data
-#         try:
-#             with open("users.txt", "r") as file:
-#                 lines = file.readlines()
-#                 for line in lines:
-#                     data = line.strip().split(',')
-#                     if data[0] == email:
-#                         user_name = data[2]  # Assuming format is: email,password,name
-#                         break
-#                 else:
-#                     user_name = "User"  # Fallback if name not found
-#         except FileNotFoundError:
-#             user_name = "User"
-#     else:
-#         email = "default@example.com"  # Fallback email if none is provided
-#         user_name = "User"  # Fallback name if none is provided
+        user_data = load_user_data(email)
+      
+        try:
+            with open("users.txt", "r") as file:
+                lines = file.readlines()
+                for line in lines:
+                    data = line.strip().split(',')
+                    if data[0] == email:
+                        user_name = data[2]  
+                        break
+                else:
+                    user_name = "User"  
+        except FileNotFoundError:
+            user_name = "User"
+    else:
+        email = "default@example.com" 
+        user_name = "User" 
  
-#     create_dashboard(email, user_name)
+    create_dashboard(email, user_name)
 
 root.mainloop()
