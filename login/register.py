@@ -1,4 +1,3 @@
-
 import tkinter 
 import customtkinter 
 import re
@@ -168,7 +167,7 @@ def show_login():
     signup_frame.place_forget()
 
 # Title Label
-l2 = customtkinter.CTkLabel(master=login_frame, text="Log into your account", font=('Poppins', 20))
+l2 = customtkinter.CTkLabel(master=login_frame, text="Log Into Your Account", font=('Poppins', 20))
 l2.place(relx=0.5, y=60, anchor = tkinter.CENTER)
 
 # Username entry field
