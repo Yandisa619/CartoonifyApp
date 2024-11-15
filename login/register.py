@@ -94,13 +94,33 @@ login_frame.place(relx=0.45, rely=0.5, anchor=tkinter.CENTER)
 signup_frame = customtkinter.CTkFrame(master=app, width = frame_width, height = frame_height, corner_radius=10, fg_color = "black")
 signup_frame.place(relx=0.45, rely=0.5, anchor=tkinter.CENTER)
 
-show_password_var = tkinter.BooleanVar()
+show_password_var = tkinter.BooleanVar(value = False)
+
+def trace_var(*args):
+    print("Password visibility toggled:", show_password_var.get())
+
+show_password_var.trace_add("write", trace_var)
+
+# Password entry field
+login_password_entry = customtkinter.CTkEntry(master=login_frame, width=220, placeholder_text="Password", show="*")
+login_password_entry.place(relx=0.5, y=200, anchor = tkinter.CENTER)
+
 
 def toggle_password_visibility():
+    print("Toggle State:", show_password_var.get())
     if show_password_var.get():
         login_password_entry.configure(show = "")
     else:
         login_password_entry.configure(show = "*")
+
+# Checkbox for showing/hiding passwords
+show_password_check = customtkinter.CTkCheckBox(
+    master = login_frame, text="Show Password", variable=show_password_var,
+    command=toggle_password_visibility,
+    font=('Poppins', 10)
+)
+show_password_check.place(relx=0.5, y=240, anchor=tkinter.CENTER)
+
         
 # Login Button Action
 def on_login_click():
@@ -113,7 +133,11 @@ def on_login_click():
     
     hashed_password = hash_password(password)
     
-    show_loading()
+    try:
+        show_loading()
+    except NameError:
+        pass
+
     
     # Check if credentials exist in the database
     
@@ -151,24 +175,14 @@ l2.place(relx=0.5, y=60, anchor = tkinter.CENTER)
 login_username_entry = customtkinter.CTkEntry(master=login_frame, width=220, placeholder_text="Username")
 login_username_entry.place(relx=0.5, y=140, anchor = tkinter.CENTER)
 
-# Password entry field
-login_password_entry = customtkinter.CTkEntry(master=login_frame, width=220, placeholder_text="Password", show="*")
-login_password_entry.place(relx=0.5, y=190, anchor = tkinter.CENTER)
 
 
-# Checkbox for showing/hiding passwords
-show_password_check = customtkinter.CTkCheckBox(
-    login_frame, text="Show Password", variable=show_password_var,
-    command=toggle_password_visibility,
-    font=('Poppins', 10)
-)
-show_password_check.place(relx=0.5, y=240, anchor=tkinter.CENTER)
+
 
 # Login and Sign Up buttons
 login_button = customtkinter.CTkButton(master=login_frame, width=220, text="Login", corner_radius=6, command=on_login_click)
 login_button.place(relx=0.5, y=270, anchor = tkinter.CENTER)
 
-show_password_var = tkinter.BooleanVar()
 
 progress_bar = customtkinter.CTkProgressBar(master=signup_frame, width=220, height=10)
 progress_bar.place(relx=0.5, y=330, anchor=tkinter.CENTER)
@@ -195,7 +209,11 @@ def get_password_strength_value(password_strength):
     else:
          return 0
     
-
+def on_password_input(event = None):
+    password = entry5.get()
+    password_strength = check_password_strength(password)
+    progress_value = get_password_strength_value(password_strength)
+    progress_bar.set(progress_value / 100)
 
 # Function for Sign-Up button validation
 def on_signup_click():
@@ -263,6 +281,7 @@ entry4.place(relx=0.5, y=190, anchor = tkinter.CENTER)
 
 entry5 = customtkinter.CTkEntry(master=signup_frame, width=220, placeholder_text="Password", show="*")
 entry5.place(relx=0.5, y=240, anchor = tkinter.CENTER)
+entry5.bind("<KeyRelease>", on_password_input)
 
 entry6 = customtkinter.CTkEntry(master=signup_frame, width=220, placeholder_text="Confirm Password", show="*")
 entry6.place(relx=0.5, y=290, anchor=tkinter.CENTER)
