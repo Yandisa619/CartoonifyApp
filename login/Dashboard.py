@@ -4,8 +4,15 @@ import sqlite3
 import io 
 from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk, ImageEnhance
+from customtkinter import CTkImage
 import cv2
 import numpy as np
+
+if len(sys.argv) > 1:
+    user_id = sys.argv[1]
+    print(f"User ID: {user_id}")
+else:
+     print("No user_id provided")
 
 # Set appearance mode (system, light, dark) and color theme
 ctk.set_appearance_mode("dark")
@@ -86,7 +93,17 @@ def save_image(user_id):
 
        conn = sqlite3.connect('user_data.db')
        cursor = conn.cursor()
-       cursor.execute('''INSERT INTO images (image_data) Values (?) ''', (img_byte_array,))
+       
+       cursor.execute('''
+            CREATE TABLE IF NOT EXISTS images (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                image_data BLOB NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES users (id)
+            )
+        ''')
+       
+       cursor.execute('INSERT INTO images (user_id, image_data) Values (?, ?)',(user_id, image_data))
        conn.commit()
        conn.close()
 
@@ -94,14 +111,6 @@ def save_image(user_id):
     else:
         messagebox.showerror("No Image", "Please cartoonify an image before saving.")
 
-<<<<<<< HEAD
-=======
-def image_to_binary(image):
-    with io.BytesIO() as byte_array:
-        image.save(byte_array, format = "PNG")
-        return byte_array.getvalue()
-    
->>>>>>> 3291105898ae11839ebf02b889b8b2975a3ff5d7
 def apply_cartoon_effect():
     global cartoon_image
     if smoothed_image and edges_image:
@@ -229,29 +238,43 @@ def cartoonify():
         update_cartoon_display()
 
 def view_cartoonified_images():
-    conn = sqlite3.connect("cartoon_images.db")
-    cursor = conn.cursor()
-    cursor.execute('SELECT filename, image FROM cartoon_images')
-    rows = cursor.fetchall()
-    conn.close()
+    try:
+        conn = sqlite3.connect("cartoon_images.db")
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT filename, image FROM cartoon_images")
+        rows = cursor.fetchall()
+        conn.close()
+
+        if not rows:
+            messagebox.showinfo("No Images", "No cartoonified images found in the database.")
+            return
     
-    # Create a new window to display images
-    view_window = ctk.CTkToplevel(root)
-    view_window.title("Cartoonified Images")
-    view_window.geometry("600x400")
+        view_window = ctk.CTkToplevel(root)
+        view_window.title("Cartoonified Images")
+        view_window.geometry("600x400")
+        view_window.grid_columnconfigure((0, 1, 2, 3), weight=1)
     
-    # Display each image in the database
-    for index, (filename, image_data) in enumerate(rows):
-        image = Image.frombytes("RGB", (200, 200), image_data)  
-        image_tk = ImageTk.PhotoImage(image)
-        
-        # Create a label for each image
-        label = ctk.CTkLabel(view_window, image=image_tk)
-        label.image = image_tk  
-        label.grid(row=index // 4, column=index % 4, padx=10, pady=10)
+        for index, (filename, image_data) in enumerate(rows):
+            
+            if image_data:
+                try:
+                   image = Image.open(io.BytesIO(image_data))
+                   image = image.resize((150, 150))  # Resize for display
+                   image_tk = ImageTk.PhotoImage(image)
+            
+                   label = ctk.CTkLabel(view_window, text=filename, image=image_tk, compound="top")
+                   label.image = image_tk  # Keep a reference to avoid garbage collection
+                   label.grid(row=index // 4, column=index % 4, padx=10, pady=10)
+               
+                except Exception as e:
+                    print(f"Error loading image for {filename}: {e}")
+                    messagebox.showerror("Image Error", f"Error loading image for {filename}.")
 
-
-
+    except sqlite3.OperationalError as e:
+        messagebox.showerror("Database Error", f"Database error: {e}")
+    except Exception as e:
+        messagebox.showerror("Error", f"An error occurred: {e}")
 def save_comparison():
     if original_image and cartoon_image:
         save_path = filedialog.asksaveasfilename(defaultextension=".jpg", filetypes=[("JPEG", "*.jpg"), ("PNG", "*.png")])
@@ -327,11 +350,13 @@ def create_dashboard(email, user_name):
     dashboard_frame = ctk.CTkFrame(root, width=700, height=500)
     dashboard_frame.pack(pady=20)
 
+    profile_image = ctk.CTkImage(light_image = Image.open(r"C:\Users\Yandisa\OneDrive - Cape IT Initiative\Documents\GitHub\CartoonifyApp\pictures\user.png"), size = (100, 100))
+
     # Add profile icon
     profile_icon = ctk.CTkLabel(
         sidebar,
         text="",  # No text for the label
-        image=ctk.CTkImage(file="user.png "),  
+        image = profile_image,  
         width=100,
         height=100,
     )
@@ -355,9 +380,11 @@ open_button.pack(pady=30)
 view_button = ctk.CTkButton(sidebar, text="View Cartoonified", command=view_cartoonified_images)
 view_button.pack(pady=30)
 
-view_button = ctk.CTkButton(sidebar, text="Save Image", command=save_image)
+view_button = ctk.CTkButton(sidebar, text="Save Image", command = lambda: save_image(user_id))
 view_button.pack(pady=30)
 
+#save_button = ctk.CTkButton(view_button, text="Save Image", command= lambda: save_image(user_id))
+#save_button.pack(pady=10)
 
 settings_button = ctk.CTkButton(sidebar, text="Settings")
 settings_button.pack(pady=30, padx=20)
@@ -382,8 +409,7 @@ smoothed_image_label.pack(side="right", padx=20, pady=20)
 edges_image_label = ctk.CTkLabel(image_frame, text="Edges Image")
 edges_image_label.pack(side="left", padx=10, pady=10)
 
-# save_button = ctk.CTkButton(root, text="Save Image", command=save_image)
-# save_button.pack(pady=10)
+
 
 
 

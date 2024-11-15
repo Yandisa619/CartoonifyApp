@@ -153,8 +153,10 @@ def on_login_click():
      user = cursor.fetchone()
         
     if user:
+
+        user_id = user[0]
         messagebox.showinfo("Login", f"Welcome, {username}")
-        subprocess.Popen([r'python', r'C:\Users\Ntombekhaya.mkaba\OneDrive - Cape IT Initiative\Portfolio N\CartoonifyApp\login\Dashboard.py'])
+        subprocess.Popen([r'python', r'C:\Users\Yandisa\OneDrive - Cape IT Initiative\Documents\GitHub\CartoonifyApp\login\Dashboard.py'])
         
         
         login_username_entry.delete(0, tkinter.END)
