@@ -1,7 +1,7 @@
 import sys
 import customtkinter as ctk
 import sqlite3
-import io 
+from io import BytesIO
 from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk, ImageEnhance
 from customtkinter import CTkImage
@@ -109,7 +109,7 @@ def cartoonify_image(image):
     return cartoon
 
 def image_to_binary(image):
-    with io.BytesIO() as byte_array:
+    with BytesIO() as byte_array:
         image.save(byte_array, format="PNG") 
         return byte_array.getvalue()
 
@@ -284,9 +284,69 @@ def cartoonify():
         update_last_image_state() 
         update_cartoon_display()
 
-def view_cartoonified_images():
+def view_cartoonified_images(user_id):
+    """
+    Fetches and displays the previously saved cartoonified images for a user.
+    Args:
+        user_id (int): The user's ID.
+    """
+    try:
+        # Connect to the database
+        conn = sqlite3.connect('user_data.db')
+        cursor = conn.cursor()
+
+        # Fetch all the images for the given user_id
+        cursor.execute("SELECT image_data FROM images WHERE user_id=?", (user_id,))
+        images = cursor.fetchall()
+
+        # If no images found
+        if not images:
+            messagebox.showinfo("No Images", "No cartoonified images found for this user.")
+            return
+
+        # Create a new window or frame to display images
+        image_window = ctk.CTkToplevel(root)  # Open a new window
+        image_window.title("Your Cartoonified Images")
+        image_window.geometry("600x400")
+
+        # Create a canvas or frame to hold the images
+        image_frame = ctk.CTkFrame(image_window)
+        image_frame.pack(pady=20)
+
+        for idx, img_data in enumerate(images):
+            # Convert the image data from binary (BLOB) to an Image
+            img_byte_arr = img_data[0]
+            img = Image.open(BytesIO(img_byte_arr))
+            img = img.resize((300, 300))  # Resize image for display
+
+            # Convert the image to a format that can be used in tkinter
+            img_tk = ImageTk.PhotoImage(img)
+
+            # Create a label to display the image
+            img_label = ctk.CTkLabel(image_frame, image=img_tk)
+            img_label.image = img_tk  # Keep a reference to avoid garbage collection
+            img_label.grid(row=idx // 3, column=idx % 3, padx=10, pady=10)  # Arrange in a grid
+
+            def download_image(img_data=img_byte_arr):
+                """Handle image download functionality."""
+                # Ask the user for the location to save the file
+                file_path = filedialog.asksaveasfilename(defaultextension=".png", filetypes=[("PNG files", "*.png")])
+                if file_path:
+                    # Save the image to the selected path
+                    img = Image.open(BytesIO(img_data))
+                    img.save(file_path)
+                    messagebox.showinfo("Image Saved", "Your image has been saved successfully!")
+
+            # Add a button to download the image
+            download_button = ctk.CTkButton(image_frame, text="Download", command=download_image)
+            download_button.grid(row=idx // 3, column=(idx % 3) + 1, padx=10, pady=10)
+
+
+        conn.close()
+    except sqlite3.Error as e:
+        messagebox.showerror("Database Error", f"An error occurred while retrieving the images: {e}")
    
- def save_comparison():
+def save_comparison():
     if original_image and cartoon_image:
         save_path = filedialog.asksaveasfilename(defaultextension=".jpg", filetypes=[("JPEG", "*.jpg"), ("PNG", "*.png")])
         if save_path:
@@ -361,20 +421,20 @@ def create_dashboard(email, user_name):
     dashboard_frame = ctk.CTkFrame(root, width=700, height=500)
     dashboard_frame.pack(pady=20)
 
-    profile_image = ctk.CTkImage(light_image = Image.open(r"C:\Users\yndub\Documents\GitHub\CartoonifyApp\pictures\user.png"), size = (100, 100))
+    profile_image = ctk.CTkImage(light_image=Image.open(r"C:\Users\yndub\Documents\GitHub\CartoonifyApp\pictures\user.png"), size=(100, 100))
 
     # Add profile icon
     profile_icon = ctk.CTkLabel(
         sidebar,
         text="",  # No text for the label
-        image = profile_image,  
+        image=profile_image,
         width=100,
         height=100,
     )
     profile_icon.pack(pady=20)
-    
+
     def get_username(user_id):
-        try: 
+        try:
             conn = sqlite3.connect('user_data.db')
             cursor = conn.cursor()
 
@@ -383,35 +443,34 @@ def create_dashboard(email, user_name):
 
             if result:
                 return result[0]
-            else: 
+            else:
                 return None
         except sqlite3.Error as e:
-            print(f"An error occured while retriving the username: {e}")
+            print(f"An error occurred while retrieving the username: {e}")
             return None
         finally:
             conn.close()
-    
+
     user_id = 1
     user_name = get_username(user_id)
 
     # Add welcome label below the profile icon
     if user_name:
         heading_label = ctk.CTkLabel(
-        sidebar, text=f"Welcome, {user_name}!", font=("Arial", 20)
-    )
-    heading_label.pack(pady=10)
-    
-
-    # Remove the email label
-    # email_label = ctk.CTkLabel(dashboard_frame, text=f"Email: {email}", font=("Arial", 14))
-    # email_label.pack(pady=5)
-
-
+            sidebar, text=f"Welcome, {user_name}!", font=("Arial", 20)
+        )
+        heading_label.pack(pady=10)
+    else:
+        # Handle the case where the username is None or not found
+        heading_label = ctk.CTkLabel(
+            sidebar, text="Welcome, Guest!", font=("Arial", 20)
+        )
+        heading_label.pack(pady=10)
 # Sidebar buttons
 open_button = ctk.CTkButton(sidebar, text="Open Image", command=open_image)
 open_button.pack(pady=30)
 
-view_button = ctk.CTkButton(sidebar, text="View Cartoonified", command= lambda: view_cartoonified_images)
+view_button = ctk.CTkButton(sidebar, text="View Cartoonified", command= lambda: view_cartoonified_images(user_id))
 view_button.pack(pady=30)
 
 view_button = ctk.CTkButton(sidebar, text="Save Image", command = lambda: save_image(user_id, cartoon_image))
