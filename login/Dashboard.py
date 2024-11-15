@@ -77,11 +77,9 @@ def cartoonify_image(image):
     return cartoon
 
 def image_to_binary(image):
-    
-    
     with io.BytesIO() as byte_array:
-     image.save(byte_array, format = "PNG")
-    return byte_array.getvalue()
+        image.save(byte_array, format="PNG") 
+        return byte_array.getvalue()
 
 def save_image(user_id, cartoon_image):
     if cartoon_image:
@@ -93,8 +91,17 @@ def save_image(user_id, cartoon_image):
             conn = sqlite3.connect('user_data.db')
             cursor = conn.cursor()
 
+            cursor.execute('''CREATE TABLE IF NOT EXISTS users (
+                                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                username TEXT NOT NULL,
+                                email TEXT NOT NULL,
+                                password TEXT NOT NULL
+                              )''')
+            
+
+
             # Check if the images table exists, and create it if not
-            cursor.execute('''CREATE TABLE IF NOT EXISTS images (
+            cursor.execute('''CREATE TABLE IF NOT EXISTS images(
                                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                                 image_data BLOB NOT NULL,
                                 user_id INTEGER,
