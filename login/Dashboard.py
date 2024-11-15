@@ -15,6 +15,38 @@ else:
      print("No user_id provided, setting default user_id")
      user_id = 1
 
+# Connect to the database
+conn = sqlite3.connect('user_data.db')
+cursor = conn.cursor()
+
+cursor.execute("PRAGMA table_info(images)")
+columns = conn.cursor()
+
+# Fetch the schema of the images table
+cursor.execute("PRAGMA table_info(images)")
+columns = cursor.fetchall()
+
+if not any(column[1] == 'user_id' for column in columns):
+    print("Recreating the 'images' table to include 'user_id'...")
+
+    cursor.execute("ALTER TABLE images RENAME TO images_backup")
+
+    cursor.execute('''CREATE TABLE images (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        image_data BLOB NOT NULL,
+                        user_id INTEGER,
+                        FOREIGN KEY(user_id) REFERENCES users(id)
+                      )''')
+    
+    cursor.execute('''INSERT INTO images (id, image_data)
+                       SELECT id, image_data FROM images_backup''')
+    
+    cursor.execute("DROP TABLE images_backup")
+    print("Recreated the 'images' table successfully.")
+
+conn.commit()
+conn.close()
+
 # Set appearance mode (system, light, dark) and color theme
 ctk.set_appearance_mode("dark")
 ctk.set_default_color_theme(r"login/violet_light.json")
@@ -329,7 +361,7 @@ def create_dashboard(email, user_name):
     dashboard_frame = ctk.CTkFrame(root, width=700, height=500)
     dashboard_frame.pack(pady=20)
 
-    profile_image = ctk.CTkImage(light_image = Image.open(r"C:\Users\Yandisa\OneDrive - Cape IT Initiative\Documents\GitHub\CartoonifyApp\pictures\user.png"), size = (100, 100))
+    profile_image = ctk.CTkImage(light_image = Image.open(r"C:\Users\yndub\Documents\GitHub\CartoonifyApp\pictures\user.png"), size = (100, 100))
 
     # Add profile icon
     profile_icon = ctk.CTkLabel(
