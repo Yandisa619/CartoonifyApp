@@ -1,16 +1,57 @@
 import subprocess
+import sqlite3
 import sys
 import traceback
 import customtkinter as ctk
+from io import BytesIO
 from tkinter import colorchooser, filedialog, messagebox
 from PIL import Image, ImageTk, ImageEnhance,ImageFilter
 import cv2
 import numpy as np
 import json
 
+if len(sys.argv) > 1:
+    user_id = sys.argv[1]
+    print(f"User ID: {user_id}")
+else:
+     print("No user_id provided, setting default user_id")
+     user_id = 1
+
+# Connect to the database
+conn = sqlite3.connect('user_data.db')
+cursor = conn.cursor()
+
+cursor.execute("PRAGMA table_info(images)")
+columns = conn.cursor()
+
+# Fetch the schema of the images table
+cursor.execute("PRAGMA table_info(images)")
+columns = cursor.fetchall()
+
+if not any(column[1] == 'user_id' for column in columns):
+    print("Recreating the 'images' table to include 'user_id'...")
+
+    cursor.execute("ALTER TABLE images RENAME TO images_backup")
+
+    cursor.execute('''CREATE TABLE images (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        image_data BLOB NOT NULL,
+                        user_id INTEGER,
+                        FOREIGN KEY(user_id) REFERENCES users(id)
+                      )''')
+    
+    cursor.execute('''INSERT INTO images (id, image_data)
+                       SELECT id, image_data FROM images_backup''')
+    
+    cursor.execute("DROP TABLE images_backup")
+    print("Recreated the 'images' table successfully.")
+
+conn.commit()
+conn.close()
+
 # Set appearance mode (system, light, dark) and color theme
 ctk.set_appearance_mode("dark")
-ctk.set_default_color_theme("cartoonify_env\Cartoon\Violet_light.json")
+ctk.set_default_color_theme(r"C:\Users\yndub\Documents\GitHub\CartoonifyApp\login\violet_light.json")
 
 # Create the main window
 root = ctk.CTk()
@@ -69,14 +110,36 @@ def cartoonify_image(image):
     return cartoon
 
 # Function to save the cartoonified image
-def save_image():
+def save_image(user_id, cartoon_image):
     if cartoon_image:
-        save_path = filedialog.asksaveasfilename(defaultextension=".jpg", filetypes=[("JPEG", "*.jpg"), ("PNG", "*.png")])
-        if save_path:
-            cartoon_image.save(save_path)
-            messagebox.showinfo("Image Saved", "Your cartoonified image has been saved successfully!")
+       try:
+           
+           img_byte_arr = BytesIO()
+           cartoon_image.save(img_byte_arr, format = 'PNG')
+           img_byte_arr = img_byte_arr.getvalue()
+
+           conn = sqlite3.connect('user_data.db')
+           cursor = conn.cursor()
+
+           cursor.execute('''CREATE TABLE IF NOT EXISTS images (
+                                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                image_data BLOB NOT NULL,
+                                user_id INTEGER,
+                                FOREIGN KEY(user_id) REFERENCES users(id)
+                              )''')
+           
+           cursor.execute('INSERT INTO images (user_id, image_data) VALUES (?, ?)', (user_id, img_byte_arr))
+           conn.commit()
+
+           conn.close()
+
+           messagebox.showinfo("Image Saved", "Your cartoonified image has been saved to the database successfully!")
+       except sqlite3.Error as e:
+            # Handle any database errors
+            messagebox.showerror("Database Error", f"An error occurred while saving the image: {e}")
     else:
         messagebox.showerror("No Image", "Please cartoonify an image before saving.")
+
 
 def apply_cartoon_effect():
     global cartoon_image
@@ -301,7 +364,7 @@ def option_selected(choice):
 def create_navigationbar():
     nav_bar = ctk.CTkFrame(root)
     nav_bar.pack(fill="x")
-    logo_image = Image.open("Purple Abstract A Letter Free Logo.png")
+    logo_image = Image.open(r"C:\Users\yndub\Documents\GitHub\CartoonifyApp\pictures\Purple Abstract A Letter Free Logo.png")
     logo_image = logo_image.resize((70, 70))
     logo_photo = ImageTk.PhotoImage(logo_image)
     app_logo = ctk.CTkLabel(nav_bar, image=logo_photo, text="")

@@ -93,7 +93,7 @@ class SplashScreen:
     def open_register(self):
         """Open the registration window."""
         print("Opening Register Window")
-        subprocess.Popen([r'python', r'C:\Users\Yandisa\OneDrive - Cape IT Initiative\Documents\GitHub\CartoonifyApp\login\register.py'])
+        subprocess.Popen([r'python', r'C:\Users\yndub\Documents\GitHub\CartoonifyApp\login\register.py'])
 
 def start_splash_screen():
     root = Tk()
