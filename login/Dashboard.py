@@ -239,10 +239,10 @@ def cartoonify():
 
 def view_cartoonified_images():
     try:
-        conn = sqlite3.connect("cartoon_images.db")
+        conn = sqlite3.connect("user_data.db")
         cursor = conn.cursor()
 
-        cursor.execute("SELECT filename, image FROM cartoon_images")
+        cursor.execute("SELECT filename, image_data FROM images")
         rows = cursor.fetchall()
         conn.close()
 
