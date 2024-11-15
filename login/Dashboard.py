@@ -68,29 +68,33 @@ def cartoonify_image(image):
     
     return cartoon
 
+def image_to_binary(image):
+    with io.BytesIO() as byte_array:
+        image.save(byte_array, format = "PNG")
+        return byte_array.getvalue()
+
 # Function to save the cartoonified image
-def save_image():
+def save_image(user_id):
     if cartoon_image:
-       img_byte_array = image_to_binary(cartoon_image)
+       save_path = filedialog.asksaveasfilename(defaultextension = ".jpg", filetypes = [("JPEG", "*.jpg"), ("PNG", "*.png")])
+       if save_path:
+           
+           cartoon_image.save(save_path)
+
+           image_data = image_to_binary(cartoon_image)
+
+           
 
        conn = sqlite3.connect('user_data.db')
        cursor = conn.cursor()
-       cursor.execute('''CREATE TABLE IF NOT EXISTS images (
-                            id INTEGER PRIMARY KEY AUTOINCREMENT,
-                            image_data BLOB)''')
        cursor.execute('''INSERT INTO images (image_data) Values (?) ''', (img_byte_array,))
        conn.commit()
-
        conn.close()
 
        messagebox.showinfo("Image Saved", "Your cartoonified image has been saved to the database successfully!")
     else:
         messagebox.showerror("No Image", "Please cartoonify an image before saving.")
 
-def image_to_binary(image):
-    with io.BytesIO() as byte_array:
-        image.save(byte_array, format = "PNG")
-        return byte_array.getvalue()
 def apply_cartoon_effect():
     global cartoon_image
     if smoothed_image and edges_image:
