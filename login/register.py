@@ -66,6 +66,13 @@ def initialize_db():
                         email TEXT NOT NULL,
                         password TEXT NOT NULL
                       )''')
+    
+    cursor.execute('''CREATE TABLE IF NOT EXISTS images (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        image_data BLOB NOT NULL,
+                        user_id INTEGER,
+                        FOREIGN KEY(user_id) REFERENCES users(id)
+                      )''')
     conn.commit()
     conn.close()
 
@@ -120,7 +127,7 @@ show_password_check = customtkinter.CTkCheckBox(
 )
 show_password_check.place(relx=0.5, y=240, anchor=tkinter.CENTER)
 
-        
+
 # Login Button Action
 def on_login_click():
     username = login_username_entry.get()
@@ -146,8 +153,10 @@ def on_login_click():
      user = cursor.fetchone()
         
     if user:
+
+        user_id = user[0]
         messagebox.showinfo("Login", f"Welcome, {username}")
-        subprocess.Popen([r'python', r'C:\Users\Ntombekhaya.mkaba\OneDrive - Cape IT Initiative\Portfolio N\CartoonifyApp\login\Dashboard.py'])
+        subprocess.Popen([r'python', r'C:\Users\Yandisa\OneDrive - Cape IT Initiative\Documents\GitHub\CartoonifyApp\login\Dashboard.py', str(user_id)])
         
         
         login_username_entry.delete(0, tkinter.END)
