@@ -147,7 +147,7 @@ def on_login_click():
         
     if user:
         messagebox.showinfo("Login", f"Welcome, {username}")
-        subprocess.Popen(['python', 'dashboard.py'])
+        subprocess.Popen([r'python', r'C:\Users\Yandisa\OneDrive - Cape IT Initiative\Documents\GitHub\CartoonifyApp\login\Dashboard.py'])
         
         
         login_username_entry.delete(0, tkinter.END)

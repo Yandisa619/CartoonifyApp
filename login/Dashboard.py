@@ -1,6 +1,8 @@
 from readline import redisplay
 import sys
 import customtkinter as ctk
+import sqlite3
+import io 
 from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk, ImageEnhance
 import cv2
@@ -8,7 +10,7 @@ import numpy as np
 
 # Set appearance mode (system, light, dark) and color theme
 ctk.set_appearance_mode("dark")
-ctk.set_default_color_theme("cartoonify_env\Cartoon\Violet_light.json")
+ctk.set_default_color_theme(r"cartoonify_env\Cartoon\Violet_light.json")
 
 # Create the main window
 root = ctk.CTk()
@@ -69,13 +71,26 @@ def cartoonify_image(image):
 # Function to save the cartoonified image
 def save_image():
     if cartoon_image:
-        save_path = filedialog.asksaveasfilename(defaultextension=".jpg", filetypes=[("JPEG", "*.jpg"), ("PNG", "*.png")])
-        if save_path:
-            cartoon_image.save(save_path)
-            messagebox.showinfo("Image Saved", "Your cartoonified image has been saved successfully!")
+       img_byte_array = image_to_binary(cartoon_image)
+
+       conn = sqlite3.connect('user_data.db')
+       cursor = conn.cursor()
+       cursor.execute('''CREATE TABLE IF NOT EXISTS images (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            image_data BLOB)''')
+       cursor.execute('''INSERT INTO images (image_data) Values (?) ''', (img_byte_array,))
+       conn.commit()
+
+       conn.close()
+
+       messagebox.showinfo("Image Saved", "Your cartoonified image has been saved to the database successfully!")
     else:
         messagebox.showerror("No Image", "Please cartoonify an image before saving.")
 
+def image_to_binary(image):
+    with io.BytesIO() as byte_array:
+        image.save(byte_array, format = "PNG")
+        return byte_array.getvalue()
 def apply_cartoon_effect():
     global cartoon_image
     if smoothed_image and edges_image:
