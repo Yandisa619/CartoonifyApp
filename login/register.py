@@ -1,6 +1,7 @@
 import tkinter 
 import customtkinter 
 import re
+import os
 import threading
 import subprocess
 import sqlite3
@@ -59,6 +60,7 @@ def hash_password(password):
 def initialize_db():
     conn = sqlite3.connect('user_data.db')
     cursor = conn.cursor()
+    cursor.execute('PRAGMA foreign_keys = ON')
     
     cursor.execute('''CREATE TABLE IF NOT EXISTS users (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,

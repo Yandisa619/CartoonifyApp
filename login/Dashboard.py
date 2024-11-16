@@ -1,12 +1,15 @@
 import sys
 import customtkinter as ctk
 import sqlite3
+import os
 from io import BytesIO
 from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk, ImageEnhance
 from customtkinter import CTkImage
 import cv2
 import numpy as np
+
+
 
 if len(sys.argv) > 1:
     user_id = sys.argv[1]
@@ -15,22 +18,26 @@ else:
      print("No user_id provided, setting default user_id")
      user_id = 1
 
+db_path = r"C:\Users\yndub\Documents\GitHub\CartoonifyApp\user_data.db"
+if not os.path.exists(db_path):
+   messagebox.showerror("Database Error","Database file not found.")
+   sys.exit(1)
+
 # Connect to the database
-conn = sqlite3.connect('user_data.db')
+conn = sqlite3.connect(db_path)
 cursor = conn.cursor()
 
-cursor.execute("PRAGMA table_info(images)")
-columns = conn.cursor()
-
-# Fetch the schema of the images table
 cursor.execute("PRAGMA table_info(images)")
 columns = cursor.fetchall()
 
 if not any(column[1] == 'user_id' for column in columns):
     print("Recreating the 'images' table to include 'user_id'...")
-
-    cursor.execute("ALTER TABLE images RENAME TO images_backup")
-
+    try:
+     cursor.execute("ALTER TABLE images RENAME TO images_backup")
+    except sqlite3.OperationalError:
+        print("No such table: images")
+        conn.close()
+        sys.exit(1)
     cursor.execute('''CREATE TABLE images (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         image_data BLOB NOT NULL,
@@ -49,7 +56,7 @@ conn.close()
 
 # Set appearance mode (system, light, dark) and color theme
 ctk.set_appearance_mode("dark")
-ctk.set_default_color_theme(r"login/violet_light.json")
+ctk.set_default_color_theme(r"C:\Users\yndub\Documents\GitHub\CartoonifyApp\login\violet_light.json")
 
 # Create the main window
 root = ctk.CTk()
@@ -108,21 +115,27 @@ def cartoonify_image(image):
     
     return cartoon
 
-def image_to_binary(image):
-    with BytesIO() as byte_array:
-        image.save(byte_array, format="PNG") 
-        return byte_array.getvalue()
+def image_to_binary(image_path):
+    
+        with open(image_path, 'rb') as file:
+            return file.read()
 
 def save_image(user_id, cartoon_image):
     if cartoon_image:
         # Convert cartoon image to binary
+        if not os.path.exists(cartoon_image):
+            messagebox.showerror("Invalid Path", "The provided image path does not exist")
+            return
         image_data = image_to_binary(cartoon_image)
 
         try:
             # Connect to the database
-            conn = sqlite3.connect('user_data.db')
+            db_path = r"C:\Users\yndub\Documents\GitHub\CartoonifyApp\user_data.db"
+            conn = sqlite3.connect(db_path)
             cursor = conn.cursor()
-
+            
+            
+            cursor.execute('PRAGMA foreign_keys = ON')
             cursor.execute('''CREATE TABLE IF NOT EXISTS users (
                                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                                 username TEXT NOT NULL,
@@ -139,6 +152,11 @@ def save_image(user_id, cartoon_image):
                                 user_id INTEGER,
                                 FOREIGN KEY(user_id) REFERENCES users(id)
                               )''')
+            
+            cursor.execute("SELECT id FROM users WHERE id = ?", (user_id,))
+            if cursor.fetchone() is None:
+                messagebox.showerror("Invalid User", "The provided user ID does not exist.")
+                return
 
             # Insert the binary data and user_id into the images table
             cursor.execute('INSERT INTO images (user_id, image_data) VALUES (?, ?)', (user_id, image_data))
@@ -152,6 +170,10 @@ def save_image(user_id, cartoon_image):
         except sqlite3.Error as e:
             # Show error message if database operation fails
             messagebox.showerror("Database Error", f"An error occurred while saving the image: {e}")
+
+        finally: 
+            if conn:
+                conn.close()
     else:
         messagebox.showerror("No Image", "Please cartoonify an image before saving.")
 
@@ -371,7 +393,7 @@ def create_navigationbar():
     nav_bar.pack(fill="x")
  
    
-    logo_image = Image.open("pictures/Purple Abstract A Letter Free Logo.png")  
+    logo_image = Image.open(r"C:\Users\yndub\Documents\GitHub\CartoonifyApp\pictures\Purple Abstract A Letter Free Logo.png")  
     logo_image = logo_image.resize((70, 70))  
  
    
