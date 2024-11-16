@@ -125,9 +125,11 @@ def image_to_binary(image_path):
 
 def connect_to_db():
     """Connect to the SQLite database and return the connection and cursor."""
-    conn = sqlite3.connect('your_database_name.db')  # Replace with your actual database file
+    conn = sqlite3.connect(r'c:\Users\yndub\Documents\GitHub\CartoonifyApp\user_data.db')  # Replace with your actual database file
     cursor = conn.cursor()
+    print("Database connection established.")
     return conn, cursor
+
 
 def save_image(user_id, cartoon_image):
     conn = None  # Initialize conn to None
@@ -150,25 +152,17 @@ def save_image(user_id, cartoon_image):
             conn, cursor = connect_to_db()  # Using the connect_to_db function
             
             cursor.execute('PRAGMA foreign_keys = ON')
-            cursor.execute('''CREATE TABLE IF NOT EXISTS users (
-                                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                username TEXT NOT NULL,
-                                email TEXT NOT NULL,
-                                password TEXT NOT NULL
-                              )''')
 
-            # Check if the images table exists, and create it if not
-            cursor.execute('''CREATE TABLE IF NOT EXISTS images(
-                                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                image_data BLOB NOT NULL,
-                                user_id INTEGER,
-                                FOREIGN KEY(user_id) REFERENCES users(id)
-                              )''')
+            # Print the user_id and check if it exists
+            print(f"Checking if user with ID {user_id} exists...")
 
             cursor.execute("SELECT id FROM users WHERE id = ?", (user_id,))
-            if cursor.fetchone() is None:
-                messagebox.showerror("Invalid User", "The provided user ID does not exist.")
+            result = cursor.fetchone()
+            if result is None:
+                messagebox.showerror("Invalid User", f"The provided user ID {user_id} does not exist.")
                 return
+            else:
+                print(f"User with ID {user_id} exists!")
 
             # Insert the binary data and user_id into the images table
             cursor.execute('INSERT INTO images (user_id, image_data) VALUES (?, ?)', (user_id, image_data))
