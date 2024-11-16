@@ -121,31 +121,29 @@ def image_to_binary(image_path):
             return file.read()
 
 def save_image(user_id, cartoon_image):
+    conn = None
     if cartoon_image:
-        # Convert cartoon image to binary
-        if not os.path.exists(cartoon_image):
-            messagebox.showerror("Invalid Path", "The provided image path does not exist")
-            return
-        image_data = image_to_binary(cartoon_image)
-
         try:
+            # Convert cartoon image to binary
+            if not os.path.exists(cartoon_image):
+                messagebox.showerror("Invalid Path", "The provided image path does not exist.")
+                return
+            image_data = image_to_binary(cartoon_image)
+
             # Connect to the database
             db_path = r"C:\Users\yndub\Documents\GitHub\CartoonifyApp\user_data.db"
             conn = sqlite3.connect(db_path)
             cursor = conn.cursor()
             
-            
             cursor.execute('PRAGMA foreign_keys = ON')
-            cursor.execute('''CREATE TABLE IF NOT EXISTS users (
-                                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                username TEXT NOT NULL,
-                                email TEXT NOT NULL,
-                                password TEXT NOT NULL
-                              )''')
-            
 
+            # Check if the user exists
+            cursor.execute("SELECT id FROM users WHERE id = ?", (user_id,))
+            if cursor.fetchone() is None:
+                messagebox.showerror("Invalid User", "The provided user ID does not exist.")
+                return
 
-            # Check if the images table exists, and create it if not
+            # Check if the 'images' table exists, and create it if not
             cursor.execute('''CREATE TABLE IF NOT EXISTS images(
                                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                                 image_data BLOB NOT NULL,
@@ -153,11 +151,6 @@ def save_image(user_id, cartoon_image):
                                 FOREIGN KEY(user_id) REFERENCES users(id)
                               )''')
             
-            cursor.execute("SELECT id FROM users WHERE id = ?", (user_id,))
-            if cursor.fetchone() is None:
-                messagebox.showerror("Invalid User", "The provided user ID does not exist.")
-                return
-
             # Insert the binary data and user_id into the images table
             cursor.execute('INSERT INTO images (user_id, image_data) VALUES (?, ?)', (user_id, image_data))
             
@@ -168,10 +161,9 @@ def save_image(user_id, cartoon_image):
             # Show success message
             messagebox.showinfo("Image Saved", "Your cartoonified image has been saved to the database successfully!")
         except sqlite3.Error as e:
-            # Show error message if database operation fails
+            # Show error message if the database operation fails
             messagebox.showerror("Database Error", f"An error occurred while saving the image: {e}")
-
-        finally: 
+        finally:
             if conn:
                 conn.close()
     else:
