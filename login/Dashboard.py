@@ -1,10 +1,13 @@
+import tkinter as tk 
 import sys
+import subprocess
 import customtkinter as ctk
 import sqlite3
 import tempfile
+import traceback
 import os
 from io import BytesIO
-from tkinter import filedialog, messagebox
+from tkinter import filedialog, messagebox, colorchooser
 from PIL import Image, ImageTk, ImageEnhance
 from customtkinter import CTkImage
 import cv2
@@ -55,11 +58,11 @@ if not any(column[1] == 'user_id' for column in columns):
 conn.commit()
 conn.close()
 
-# Set appearance mode (system, light, dark) and color theme
-ctk.set_appearance_mode("dark")
-ctk.set_default_color_theme(r"C:\Users\yndub\Documents\GitHub\CartoonifyApp\login\violet_light.json")
 
-# Create the main window
+ctk.set_appearance_mode("dark")
+ctk.set_default_color_theme("blue")
+
+
 root = ctk.CTk()
 root.title("Image Cartoonifier")
 root.geometry("900x600")
@@ -71,6 +74,8 @@ edges_image = None
 cartoon_image = None
 current_image = None
 
+cartoon_styles = ["Smooth Cartoon", "Comic Style", "CartoonGAN", "CycleGAN"]
+selected_style = tk.StringVar(value="Smooth Cartoon")
 
 # Function to open and display the selected image
 def open_image():
@@ -132,28 +137,28 @@ def connect_to_db():
 
 
 def save_image(user_id, cartoon_image):
-    conn = None  # Initialize conn to None
+    conn = None  
     if cartoon_image:
-        # Save the cartoon image to a temporary file using a context manager
+       
         with tempfile.NamedTemporaryFile(delete=False, suffix='.png') as temp_file:
             temp_file_path = temp_file.name
-            cartoon_image.save(temp_file_path)  # Save the image to the temporary file
+            cartoon_image.save(temp_file_path) 
 
         try:
-            # Check if the temporary file exists
+            
             if not os.path.exists(temp_file_path):
                 messagebox.showerror("Invalid Path", "The temporary image file does not exist.")
                 return
 
-            # Convert the image to binary
+            
             image_data = image_to_binary(temp_file_path)
 
             # Connect to the database
-            conn, cursor = connect_to_db()  # Using the connect_to_db function
+            conn, cursor = connect_to_db()  
             
             cursor.execute('PRAGMA foreign_keys = ON')
 
-            # Print the user_id and check if it exists
+            
             print(f"Checking if user with ID {user_id} exists...")
 
             cursor.execute("SELECT id FROM users WHERE id = ?", (user_id,))
@@ -164,33 +169,29 @@ def save_image(user_id, cartoon_image):
             else:
                 print(f"User with ID {user_id} exists!")
 
-            # Insert the binary data and user_id into the images table
+            
             cursor.execute('INSERT INTO images (user_id, image_data) VALUES (?, ?)', (user_id, image_data))
 
-            # Commit changes and close connection
+            
             conn.commit()
 
-            # Show success message
+            
             messagebox.showinfo("Image Saved", "Your cartoonified image has been saved to the database successfully!")
         
         except sqlite3.Error as e:
-            # Show error message if database operation fails
+            
             messagebox.showerror("Database Error", f"An error occurred while saving the image: {e}")
 
         finally: 
-            if conn:  # Only try to close conn if it was initialized
+            if conn:  
                 conn.close()
 
-            # Clean up the temporary file
+            
             try:
                 os.remove(temp_file_path)
             except PermissionError as e:
                 messagebox.showerror("File Deletion Error", f"Error deleting temporary file: {e}")
                 print(f"Error deleting temporary file: {e}")
-
-
-# Function to save the cartoonified image
-
 
 def apply_cartoon_effect():
     global cartoon_image
@@ -318,6 +319,8 @@ def cartoonify():
         update_last_image_state() 
         update_cartoon_display()
 
+
+
 def view_cartoonified_images(user_id):
     """
     Fetches and displays the previously saved cartoonified images for a user.
@@ -325,21 +328,21 @@ def view_cartoonified_images(user_id):
         user_id (int): The user's ID.
     """
     try:
-        # Connect to the database
+        
         conn = sqlite3.connect('user_data.db')
         cursor = conn.cursor()
 
-        # Fetch all the images for the given user_id
+        
         cursor.execute("SELECT image_data FROM images WHERE user_id=?", (user_id,))
         images = cursor.fetchall()
 
-        # If no images found
+        
         if not images:
             messagebox.showinfo("No Images", "No cartoonified images found for this user.")
             return
 
-        # Create a new window or frame to display images
-        image_window = ctk.CTkToplevel(root)  # Open a new window
+        
+        image_window = ctk.CTkToplevel(root)  
         image_window.title("Your Cartoonified Images")
         image_window.geometry("600x400")
 
@@ -399,30 +402,19 @@ def option_selected(choice):
         print("Exit selected")
         root.quit()  
 
+root.configure(bg = "black")
+
 def create_navigationbar():
    
-    nav_bar = ctk.CTkFrame(root)
+    nav_bar = ctk.CTkFrame(root, fg_color = "black")
     nav_bar.pack(fill="x")
  
-   
-    logo_image = Image.open(r"C:\Users\yndub\Documents\GitHub\CartoonifyApp\pictures\Purple Abstract A Letter Free Logo.png")  
-    logo_image = logo_image.resize((70, 70))  
- 
-   
-    logo_photo = ImageTk.PhotoImage(logo_image)
- 
-   
-    app_logo = ctk.CTkLabel(nav_bar, image=logo_photo,text="")  
-    app_logo.image = logo_photo
-    app_logo.pack(side="left", padx=10)  
- 
- 
-    menu = ctk.CTkOptionMenu(nav_bar, values=["About", "Tutorial", "Exit"], command=option_selected)
+    menu = ctk.CTkOptionMenu(nav_bar, values=["About", "Tutorial", "Exit"], fg_color= "black", command=option_selected)
     menu.pack(side="right", padx=10)
 
 create_navigationbar()
             
-sidebar = ctk.CTkFrame(root, width=200, height=600)
+sidebar = ctk.CTkFrame(root, width=200, height=600, fg_color = "black")
 sidebar.pack(side="left", fill="y")
 
 # Load and redisplay the profile icon
@@ -435,7 +427,7 @@ try:
 
     # Add the icon to the sidebar
     icon_label = ctk.CTkLabel(sidebar, image=profile_icon_tk, text="", fg_color="transparent")
-    icon_label.pack(pady=10)
+    icon_label.pack(pady=50)
 
 except FileNotFoundError:
     print("Error: The file 'user.png' was not found.")
@@ -452,18 +444,18 @@ def create_dashboard(email, user_name):
         user_name (str): The user's name.
     """
     # Create dashboard frame
-    dashboard_frame = ctk.CTkFrame(root, width=700, height=500)
+    dashboard_frame = ctk.CTkFrame(root, width=700, height=500, fg_color = "black")
     dashboard_frame.pack(pady=20)
 
-    profile_image = ctk.CTkImage(light_image=Image.open(r"C:\Users\yndub\Documents\GitHub\CartoonifyApp\pictures\user.png"), size=(100, 100))
+
 
     # Add profile icon
     profile_icon = ctk.CTkLabel(
         sidebar,
-        text="",  # No text for the label
-        image=profile_image,
         width=100,
         height=100,
+        fg_color = "black",
+        text_color= "white"
     )
     profile_icon.pack(pady=20)
 
@@ -486,20 +478,61 @@ def create_dashboard(email, user_name):
             conn.close()
 
     user_id = 1
-    user_name = get_username(user_id)
+    
 
-    # Add welcome label below the profile icon
-    if user_name:
-        heading_label = ctk.CTkLabel(
-            sidebar, text=f"Welcome, {user_name}!", font=("Arial", 20)
-        )
-        heading_label.pack(pady=10)
+     # settings themes, bacckground
+theme_button = None
+def change_theme(is_dark):
+    if is_dark:
+        ctk.set_appearance_mode("Dark")
+        theme_switch.configure(text="Switch to Light Theme")  
     else:
-        # Handle the case where the username is None or not found
-        heading_label = ctk.CTkLabel(
-            sidebar, text="Welcome, Guest!", font=("Arial", 20)
-        )
-        heading_label.pack(pady=10)
+        ctk.set_appearance_mode("Light")
+        theme_switch.configure(text="Switch to Dark Theme")
+
+
+def update_intensity(value):
+    print(f"Cartoon Effect Intensity: {value}")
+   
+
+# Function to change background color
+def change_background_color():
+    color_code = colorchooser.askcolor(title="Choose Background Color")[1]
+    if color_code:  
+        print(f"Background Color: {color_code}")
+        # Apply color to the root window
+        root.configure(bg=color_code) 
+        # If you want to apply the color to a specific frame
+        # dashboard_frame.configure(bg=color_code) 
+    else:
+        print("No color selected")
+
+
+# Function to create settings window with toggle and other options
+def open_settings_window():
+    settings_window = ctk.CTkToplevel()  
+    settings_window.title("Settings")
+    
+    # Theme toggle using CTkSwitch
+    theme_label = ctk.CTkLabel(settings_window, text="Switch Theme:")
+    theme_label.pack(pady=5)
+    
+    global theme_switch  
+    theme_switch = ctk.CTkSwitch(settings_window, text="Switch to Dark Theme", command=lambda: change_theme(theme_switch.get()))
+    theme_switch.pack(pady=10) 
+
+
+def logout():
+    """Handles logging out and launches the login window."""
+    try:
+        root.destroy()
+        subprocess.Popen([sys.executable, "login.py"])
+        
+    except Exception as e:
+        print("Error during logout:", str(e))
+        traceback.print_exc()
+        messagebox.showerror("Error", "An error occurred while logging out. Please try again.")
+    
 # Sidebar buttons
 open_button = ctk.CTkButton(sidebar, text="Open Image", command=open_image)
 open_button.pack(pady=30)
@@ -510,13 +543,10 @@ view_button.pack(pady=30)
 view_button = ctk.CTkButton(sidebar, text="Save Image", command = lambda: save_image(user_id, cartoon_image))
 view_button.pack(pady=30)
 
-#save_button = ctk.CTkButton(view_button, text="Save Image", command= lambda: save_image(user_id))
-#save_button.pack(pady=10)
-
-settings_button = ctk.CTkButton(sidebar, text="Settings")
+settings_button = ctk.CTkButton(sidebar, text="Settings", command = open_settings_window)
 settings_button.pack(pady=30, padx=20)
 
-logout_button = ctk.CTkButton(sidebar, text="Logout")
+logout_button = ctk.CTkButton(sidebar, text="Logout", command = logout )
 logout_button.pack(pady=30)
 
 
@@ -581,14 +611,6 @@ def undo_action():
         update_cartoon_display()
     else:
         messagebox.showinfo("Undo", "No further changes to undo.")
-
-def reset_image():
-    """Reset the image to the original loaded image."""
-    global current_image
-    if original_image:
-        current_image = original_image.copy()
-        update_cartoon_display()
-
 
 def load_user_data(email, file_path="users.txt"):
     """
