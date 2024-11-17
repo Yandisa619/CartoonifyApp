@@ -313,11 +313,25 @@ def update_last_image_state():
 
 def cartoonify():
     global cartoon_image
-    if img_path:
-        cartoon_np_array = cartoonify_image(cv2.imread(img_path))
+
+    # Validate image path
+    if not img_path:
+        messagebox.showwarning("Error", "No image selected.")
+        return
+
+    try:
+        # Read the image and apply cartoonify transformation
+        original_image_cv2 = cv2.imread(img_path)
+        cartoon_np_array = cartoonify_image(original_image_cv2)
+
+        # Convert the cartoonified numpy array to PIL Image
         cartoon_image = Image.fromarray(cartoon_np_array)
-        update_last_image_state() 
+
+        # Update application state
+        update_last_image_state()
         update_cartoon_display()
+    except Exception as e:
+        messagebox.showerror("Error", f"An error occurred while cartoonifying the image: {e}")
 
 # Undo/Redo stacks
 undo_stack = []
@@ -351,15 +365,19 @@ def redo():
 comparison_frame = tk.Frame(root)
 
 
-original_canvas = tk.Canvas(comparison_frame, width=300, height=300, bg="lightgray")
+original_canvas = tk.Canvas(comparison_frame, width=300, height=300, bg="black")
 original_canvas.grid(row=0, column=0, padx=10)
 
-cartoon_canvas = tk.Canvas(comparison_frame, width=300, height=300, bg="lightgray")
+cartoon_canvas = tk.Canvas(comparison_frame, width=300, height=300, bg="black")
 cartoon_canvas.grid(row=0, column=1, padx=10)
 
 def update_comparison_view():
     """Display side-by-side comparison of original and cartoonified images."""
     if original_image and cartoon_image:
+
+        original_canvas.delete("all")
+        cartoon_canvas.delete("all")
+
         original_display = ImageTk.PhotoImage(original_image.resize((300, 300)))
         cartoon_display = ImageTk.PhotoImage(cartoon_image.resize((300, 300)))
 
@@ -436,15 +454,12 @@ def view_cartoonified_images(user_id):
             # Convert the image data from binary (BLOB) to an Image
             img_byte_arr = img_data[0]
             img = Image.open(BytesIO(img_byte_arr))
-            img = img.resize((300, 300)) 
-
-            # Convert the image to a format that can be used in tkinter
             img_tk = ImageTk.PhotoImage(img)
 
             # Create a label to display the image
             img_label = ctk.CTkLabel(image_frame, image=img_tk)
             img_label.image = img_tk  
-            img_label.grid(row=idx // 3, column=idx % 3, padx=10, pady=10)  
+            img_label.grid(row=idx // 4, column= (idx % 4) * 2, padx=10, pady=10)  
 
             def download_image(img_data=img_byte_arr):
                 """Handle image download functionality."""
