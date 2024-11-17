@@ -319,6 +319,88 @@ def cartoonify():
         update_last_image_state() 
         update_cartoon_display()
 
+# Undo/Redo stacks
+undo_stack = []
+redo_stack = []
+
+def add_to_history(image):
+    global undo_stack
+    if image:
+        undo_stack.append(image.copy())
+        redo_stack.clear()  
+
+def undo():
+    global undo_stack, redo_stack, cartoon_image
+    if undo_stack:
+        redo_stack.append(cartoon_image.copy())
+        cartoon_image = undo_stack.pop()
+        update_cartoon_display()
+    else:
+        messagebox.showinfo("Undo", "No more actions to undo.")
+
+def redo():
+    global undo_stack, redo_stack, cartoon_image
+    if redo_stack:
+        undo_stack.append(cartoon_image.copy())
+        cartoon_image = redo_stack.pop()
+        update_cartoon_display()
+    else:
+        messagebox.showinfo("Redo", "No more actions to redo.")
+
+# Create two canvases
+comparison_frame = tk.Frame(root)
+
+
+original_canvas = tk.Canvas(comparison_frame, width=300, height=300, bg="lightgray")
+original_canvas.grid(row=0, column=0, padx=10)
+
+cartoon_canvas = tk.Canvas(comparison_frame, width=300, height=300, bg="lightgray")
+cartoon_canvas.grid(row=0, column=1, padx=10)
+
+def update_comparison_view():
+    """Display side-by-side comparison of original and cartoonified images."""
+    if original_image and cartoon_image:
+        original_display = ImageTk.PhotoImage(original_image.resize((300, 300)))
+        cartoon_display = ImageTk.PhotoImage(cartoon_image.resize((300, 300)))
+
+        original_canvas.create_image(150, 150, image=original_display)
+        cartoon_canvas.create_image(150, 150, image=cartoon_display)
+
+        original_canvas.image = original_display
+        cartoon_canvas.image = cartoon_display
+    else:
+        messagebox.showinfo("Comparison", "Please upload and cartoonify an image first.")
+
+
+# Variable to track the visibility of advanced options
+advanced_options_visible = False
+
+def toggle_advanced_options():
+    """Show or hide advanced options dynamically."""
+    global advanced_options_visible
+    if advanced_options_visible:
+        # Hide advanced options
+        undo_button.pack_forget()
+        redo_button.pack_forget()
+        compare_button.pack_forget()
+        toggle_button.configure(text="Show Advanced Options")
+        advanced_options_visible = False
+    else:
+        # Show advanced options
+        undo_button.pack(pady=(10, 20), padx=20, fill="x")
+        redo_button.pack(pady=(10, 20), padx=20, fill="x")
+        compare_button.pack(pady=(10, 20), padx=20, fill="x")
+        toggle_button.configure(text="Hide Advanced Options")
+        advanced_options_visible = True
+
+def toggle_comparison_frame():
+    """Toggle the comparison frame visibility."""
+    if comparison_frame.winfo_ismapped():
+        comparison_frame.pack_forget()
+    else:
+        comparison_frame.pack(pady=20)
+        update_comparison_view()
+
 
 
 def view_cartoonified_images(user_id):
@@ -354,15 +436,15 @@ def view_cartoonified_images(user_id):
             # Convert the image data from binary (BLOB) to an Image
             img_byte_arr = img_data[0]
             img = Image.open(BytesIO(img_byte_arr))
-            img = img.resize((300, 300))  # Resize image for display
+            img = img.resize((300, 300)) 
 
             # Convert the image to a format that can be used in tkinter
             img_tk = ImageTk.PhotoImage(img)
 
             # Create a label to display the image
             img_label = ctk.CTkLabel(image_frame, image=img_tk)
-            img_label.image = img_tk  # Keep a reference to avoid garbage collection
-            img_label.grid(row=idx // 3, column=idx % 3, padx=10, pady=10)  # Arrange in a grid
+            img_label.image = img_tk  
+            img_label.grid(row=idx // 3, column=idx % 3, padx=10, pady=10)  
 
             def download_image(img_data=img_byte_arr):
                 """Handle image download functionality."""
@@ -433,8 +515,6 @@ except FileNotFoundError:
     print("Error: The file 'user.png' was not found.")
 
 
-# heading_label = ctk.CTkLabel(sidebar, text="Dashboard", font=("Arial", 18), width=200, height=40)
-# heading_label.pack(pady=50)
 
 def create_dashboard(email, user_name):
     """
@@ -502,8 +582,7 @@ def change_background_color():
         print(f"Background Color: {color_code}")
         # Apply color to the root window
         root.configure(bg=color_code) 
-        # If you want to apply the color to a specific frame
-        # dashboard_frame.configure(bg=color_code) 
+        
     else:
         print("No color selected")
 
@@ -533,22 +612,33 @@ def logout():
         traceback.print_exc()
         messagebox.showerror("Error", "An error occurred while logging out. Please try again.")
     
-# Sidebar buttons
 open_button = ctk.CTkButton(sidebar, text="Open Image", command=open_image)
-open_button.pack(pady=30)
+open_button.pack(pady=(10, 20), padx=20, fill="x")
 
-view_button = ctk.CTkButton(sidebar, text="View Cartoonified", command= lambda: view_cartoonified_images(user_id))
-view_button.pack(pady=30)
+view_cartoon_button = ctk.CTkButton(sidebar, text="View Cartoonified", command=lambda: view_cartoonified_images(user_id))
+view_cartoon_button.pack(pady=(10, 20), padx=20, fill="x")
 
-view_button = ctk.CTkButton(sidebar, text="Save Image", command = lambda: save_image(user_id, cartoon_image))
-view_button.pack(pady=30)
+save_button = ctk.CTkButton(sidebar, text="Save Image", command=lambda: save_image(user_id, cartoon_image))
+save_button.pack(pady=(10, 20), padx=20, fill="x")
 
-settings_button = ctk.CTkButton(sidebar, text="Settings", command = open_settings_window)
-settings_button.pack(pady=30, padx=20)
+undo_button = ctk.CTkButton(sidebar, text="Undo", command=undo)
+undo_button.pack(pady=(10, 20), padx=20, fill="x")
 
-logout_button = ctk.CTkButton(sidebar, text="Logout", command = logout )
-logout_button.pack(pady=30)
+redo_button = ctk.CTkButton(sidebar, text="Redo", command=redo)
+redo_button.pack(pady=(10, 20), padx=20, fill="x")
 
+compare_button = ctk.CTkButton(sidebar, text="Compare", command=toggle_comparison_frame)
+compare_button.pack(pady=(10, 20), padx=20, fill="x")
+
+toggle_button = ctk.CTkButton(sidebar, text="Show Advanced Options", command=toggle_advanced_options)
+toggle_button.pack(pady=(10, 20), padx=20, fill="x")
+
+
+settings_button = ctk.CTkButton(sidebar, text="Settings", command=open_settings_window)
+settings_button.pack(pady=(10, 20), padx=20, fill="x")
+
+logout_button = ctk.CTkButton(sidebar, text="Logout", command=logout)
+logout_button.pack(pady=(10, 20), padx=20, fill="x")
 
 # Labels to display the images
 image_frame = ctk.CTkFrame(root)
