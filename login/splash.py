@@ -9,7 +9,7 @@ class SplashScreen:
         print("Splash Screen Initialized")
         self.master = master
         self.master.title("Welcome to Artify")
-        self.master.geometry('600x440')
+        self.master.geometry('1366x768')
         self.master.configure(bg="black")
         self.master.resizable(True, True)
 
@@ -93,7 +93,7 @@ class SplashScreen:
     def open_register(self):
         """Open the registration window."""
         print("Opening Register Window")
-        subprocess.Popen([r'python', r'C:\Users\yndub\Documents\GitHub\CartoonifyApp\login\register.py'])
+        subprocess.Popen([r'python', r'C:\Users\Yandisa\OneDrive - Cape IT Initiative\Documents\GitHub\CartoonifyApp\login\register.py'])
 
 def start_splash_screen():
     root = Tk()

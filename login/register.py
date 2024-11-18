@@ -84,7 +84,7 @@ customtkinter.set_appearance_mode("dark")
 customtkinter.set_default_color_theme("blue")
 
 app = customtkinter.CTk()
-app.geometry('600x440')
+app.geometry('1366x768')
 app.title('Cartoonify App')
 
 app.configure(fg_color = "black")
@@ -158,7 +158,7 @@ def on_login_click():
 
         user_id = user[0]
         messagebox.showinfo("Login", f"Welcome, {username}")
-        subprocess.Popen([r'python', r'C:\Users\yndub\Documents\GitHub\CartoonifyApp\login\Dashboard.py', str(user_id)])
+        subprocess.Popen([r'python', r'C:\Users\Yandisa\OneDrive - Cape IT Initiative\Documents\GitHub\CartoonifyApp\login\Dashboard.py', str(user_id)])
         
         
         login_username_entry.delete(0, tkinter.END)
