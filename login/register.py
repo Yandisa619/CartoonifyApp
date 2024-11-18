@@ -59,7 +59,7 @@ def hash_password(password):
 #Initializing the database
 def initialize_db():
     
-    db_path = r"C:\Users\CAPACITI\OneDrive - EOH\Documents\CartoonifyApp\user_data.db"
+    db_path = r"c:\Users\Yandisa\OneDrive - Cape IT Initiative\Documents\GitHub\CartoonifyApp\user_data.db"
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     cursor.execute('PRAGMA foreign_keys = ON')  
@@ -164,7 +164,7 @@ def on_login_click():
 
         user_id = user[0]
         messagebox.showinfo("Login", f"Welcome, {username}")
-        subprocess.Popen([r'python', r'C:\Users\CAPACITI\OneDrive - EOH\Documents\CartoonifyApp\login\Dashboard.py', str(user_id)])
+        subprocess.Popen([r'python', r'C:\Users\Yandisa\OneDrive - Cape IT Initiative\Documents\GitHub\CartoonifyApp\login\user_data.db', str(user_id)])
         
         
         login_username_entry.delete(0, tkinter.END)
