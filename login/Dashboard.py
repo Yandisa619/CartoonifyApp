@@ -65,7 +65,7 @@ ctk.set_default_color_theme("blue")
 
 root = ctk.CTk()
 root.title("Image Cartoonifier")
-root.geometry("900x600")
+root.geometry("1366x768")
 
 img_path = None
 original_image = None
