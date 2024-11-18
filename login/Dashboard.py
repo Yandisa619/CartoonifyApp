@@ -131,7 +131,7 @@ def image_to_binary(image_path):
 
 def connect_to_db():
     """Connect to the SQLite database and return the connection and cursor."""
-    conn = sqlite3.connect(r'C:\Users\Yandisa\OneDrive - Cape IT Initiative\Documents\GitHub\CartoonifyApp\login\user_data.db')  # Replace with your actual database file
+    conn = sqlite3.connect(r'C:\Users\Yandisa\OneDrive - Cape IT Initiative\Documents\GitHub\CartoonifyApp\user_data.db')  # Replace with your actual database file
     cursor = conn.cursor()
     print("Database connection established.")
     return conn, cursor
