@@ -1,6 +1,7 @@
 import tkinter 
 import customtkinter 
 import re
+import os
 import threading
 import subprocess
 import sqlite3
@@ -57,9 +58,13 @@ def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 #Initializing the database
 def initialize_db():
-    conn = sqlite3.connect('user_data.db')
-    cursor = conn.cursor()
     
+    db_path = r"C:\Users\CAPACITI\OneDrive - EOH\Documents\CartoonifyApp\user_data.db"
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    cursor.execute('PRAGMA foreign_keys = ON')  
+    
+   
     cursor.execute('''CREATE TABLE IF NOT EXISTS users (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         username TEXT NOT NULL,
@@ -67,22 +72,25 @@ def initialize_db():
                         password TEXT NOT NULL
                       )''')
     
+    
     cursor.execute('''CREATE TABLE IF NOT EXISTS images (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         image_data BLOB NOT NULL,
                         user_id INTEGER,
                         FOREIGN KEY(user_id) REFERENCES users(id)
                       )''')
+    
     conn.commit()
     conn.close()
 
 initialize_db()
 
+
 customtkinter.set_appearance_mode("dark")
 customtkinter.set_default_color_theme("blue")
 
 app = customtkinter.CTk()
-app.geometry('600x440')
+app.geometry('1366x768')
 app.title('Cartoonify App')
 
 app.configure(fg_color = "black")
@@ -156,7 +164,7 @@ def on_login_click():
 
         user_id = user[0]
         messagebox.showinfo("Login", f"Welcome, {username}")
-        subprocess.Popen([r'python', r'C:\Users\Yandisa\OneDrive - Cape IT Initiative\Documents\GitHub\CartoonifyApp\login\Dashboard.py', str(user_id)])
+        subprocess.Popen([r'python', r'C:\Users\CAPACITI\OneDrive - EOH\Documents\CartoonifyApp\login\Dashboard.py', str(user_id)])
         
         
         login_username_entry.delete(0, tkinter.END)

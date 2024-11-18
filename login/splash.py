@@ -9,7 +9,7 @@ class SplashScreen:
         print("Splash Screen Initialized")
         self.master = master
         self.master.title("Welcome to Artify")
-        self.master.geometry('600x440')
+        self.master.geometry('1366x768')
         self.master.configure(bg="black")
         self.master.resizable(True, True)
 
