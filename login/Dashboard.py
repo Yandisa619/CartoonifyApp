@@ -22,13 +22,13 @@ else:
      print("No user_id provided, setting default user_id")
      user_id = 1
 
-db_path = r"C:\Users\CAPACITI\OneDrive - EOH\Documents\CartoonifyApp\user_data.db"
+db_path = r"c:\Users\Yandisa\OneDrive - Cape IT Initiative\Documents\GitHub\CartoonifyApp\user_data.db"
 if not os.path.exists(db_path):
    messagebox.showerror("Database Error","Database file not found.")
    sys.exit(1)
 
 # Connect to the database
-db_path = r"C:\Users\CAPACITI\OneDrive - EOH\Documents\CartoonifyApp\user_data.db"
+db_path = r"c:\Users\Yandisa\OneDrive - Cape IT Initiative\Documents\GitHub\CartoonifyApp\user_data.db"
 conn = sqlite3.connect(db_path)
 cursor = conn.cursor()
 
@@ -131,7 +131,7 @@ def image_to_binary(image_path):
 
 def connect_to_db():
     """Connect to the SQLite database and return the connection and cursor."""
-    conn = sqlite3.connect(r'C:\Users\CAPACITI\OneDrive - EOH\Documents\CartoonifyApp\user_data.db')  # Replace with your actual database file
+    conn = sqlite3.connect(r'c:\Users\Yandisa\OneDrive - Cape IT Initiative\Documents\GitHub\CartoonifyApp\user_data.db')  
     cursor = conn.cursor()
     print("Database connection established.")
     return conn, cursor
@@ -455,6 +455,8 @@ def view_cartoonified_images(user_id):
             # Convert the image data from binary (BLOB) to an Image
             img_byte_arr = img_data[0]
             img = Image.open(BytesIO(img_byte_arr))
+            max_size = (150, 150)
+            img.thumbnail(max_size)
             img_tk = ImageTk.PhotoImage(img)
 
             # Create a label to display the image
