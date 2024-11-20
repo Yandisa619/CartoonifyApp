@@ -22,13 +22,13 @@ else:
      print("No user_id provided, setting default user_id")
      user_id = 1
 
-db_path = r"c:\Users\Yandisa\OneDrive - Cape IT Initiative\Documents\GitHub\CartoonifyApp\user_data.db"
+db_path = r"C:\Users\Ntombekhaya.mkaba\OneDrive - Cape IT Initiative\Portfolio N\CartoonifyApp\user_data.db"
 if not os.path.exists(db_path):
    messagebox.showerror("Database Error","Database file not found.")
    sys.exit(1)
 
 # Connect to the database
-db_path = r"c:\Users\Yandisa\OneDrive - Cape IT Initiative\Documents\GitHub\CartoonifyApp\user_data.db"
+db_path = r"C:\Users\Ntombekhaya.mkaba\OneDrive - Cape IT Initiative\Portfolio N\CartoonifyApp\user_data.db"
 conn = sqlite3.connect(db_path)
 cursor = conn.cursor()
 
@@ -131,7 +131,7 @@ def image_to_binary(image_path):
 
 def connect_to_db():
     """Connect to the SQLite database and return the connection and cursor."""
-    conn = sqlite3.connect(r'c:\Users\Yandisa\OneDrive - Cape IT Initiative\Documents\GitHub\CartoonifyApp\user_data.db')  
+    conn = sqlite3.connect(r'C:\Users\Ntombekhaya.mkaba\OneDrive - Cape IT Initiative\Portfolio N\CartoonifyApp\user_data.db')  
     cursor = conn.cursor()
     print("Database connection established.")
     return conn, cursor
@@ -675,9 +675,6 @@ edges_image_label = ctk.CTkLabel(image_frame, text="Edges Image")
 edges_image_label.pack(side="left", padx=10, pady=10)
 
 
-
-
-
 # Dropdown for transformation options
 def apply_transformation(option):
     if option == "Cartoonify":
@@ -702,11 +699,14 @@ enhance_button = ctk.CTkButton(root, text="Enhance Image", command=enhance_image
 enhance_button.pack(pady=30)
 
 
-
+brightness_label = ctk.CTkLabel(root, text="Brightness")
+brightness_label.pack(pady=(10, 0))
 brightness_slider = ctk.CTkSlider(root, from_=0.5, to=2.0, command=adjust_brightness)
 brightness_slider.set(1.0) 
 brightness_slider.pack(pady=10)
 
+contrast_label = ctk.CTkLabel(root, text="Contrast")
+contrast_label.pack(pady=(10, 0))
 contrast_slider = ctk.CTkSlider(root, from_=0.5, to=2.0, command=adjust_contrast)
 contrast_slider.set(1.0)  
 contrast_slider.pack(pady=10)
